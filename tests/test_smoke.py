@@ -75,17 +75,20 @@ def test_scan_dataset():
 
 
 def test_dataset_split():
-    """Verify train/val split logic with max_samples capping."""
+    """Verify patient-level 80/10/10 split logic with max_samples capping."""
     data_dir = "dataset/BraTS2021_Training_Data"
     if os.path.exists(data_dir):
-        train_files, val_files = get_brats_data_dicts(
+        train_files, val_files, test_files = get_brats_data_dicts(
             data_dir=data_dir,
             train_ratio=0.8,
+            val_ratio=0.1,
+            test_ratio=0.1,
             seed=42,
             max_samples=10
         )
         assert len(train_files) == 8
-        assert len(val_files) == 2
+        assert len(val_files) == 1
+        assert len(test_files) == 1
 
 
 def test_model_forward_pass():
@@ -263,7 +266,7 @@ def test_real_sample_transform():
     if not os.path.exists(data_dir):
         pytest.skip("BraTS data directory not found")
 
-    train_files, _ = get_brats_data_dicts(data_dir, max_samples=1)
+    train_files, _, _ = get_brats_data_dicts(data_dir, max_samples=1)
     assert len(train_files) == 1
 
     transform = get_train_transforms(roi_size=(96, 96, 96))

@@ -242,3 +242,47 @@ class BraTSTrainer:
 
         return self.history
 
+    @torch.no_grad()
+    def evaluate(self, dataloader: DataLoader, name: str = "Test Set") -> Dict[str, float]:
+        """
+        Evaluate model on held-out test set using sliding window inference.
+
+        Args:
+            dataloader: DataLoader supplying test 3D volumes.
+            name: Display name for the evaluation run.
+
+        Returns:
+            Dictionary containing Dice scores (TC, WT, ET, mean).
+        """
+        self.model.eval()
+        self.metric.reset()
+
+        pbar = tqdm(dataloader, desc=f"Evaluating ({name})", leave=False)
+
+        for batch in pbar:
+            images = batch["image"].to(self.device)
+            labels = batch["label"].to(self.device)
+
+            with torch.amp.autocast(device_type=self.autocast_device,
+                                    enabled=self.amp_enabled):
+                preds = sliding_window_inference(
+                    inputs=images,
+                    roi_size=self.config.roi_size,
+                    sw_batch_size=self.config.sw_batch_size,
+                    predictor=self.model,
+                    overlap=self.config.overlap,
+                    mode="gaussian"
+                )
+
+            self.metric.update(y_pred=preds, y=labels)
+
+        scores = self.metric.aggregate()
+        print(
+            f"Evaluation on {name} - "
+            f"Mean Dice: {scores['dice_mean']:.4f} | "
+            f"TC: {scores['dice_tc']:.4f} | "
+            f"WT: {scores['dice_wt']:.4f} | "
+            f"ET: {scores['dice_et']:.4f}"
+        )
+        return scores
+

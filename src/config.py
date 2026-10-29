@@ -72,8 +72,10 @@ class BaselineConfig:
     checkpoint_dir: str = "checkpoints"
     output_dir: str = "outputs"
 
-    # Dataset parameters
+    # Dataset parameters (Patient-level 80/10/10 split)
     train_ratio: float = 0.8
+    val_ratio: float = 0.1
+    test_ratio: float = 0.1
     seed: int = 42
     roi_size: Tuple[int, int, int] = (96, 96, 96)
     num_samples_per_volume: int = 2
@@ -122,6 +124,7 @@ class BaselineConfig:
     sgd_nesterov: bool = True
     batch_size: int = 2
     val_batch_size: int = 1
+    test_batch_size: int = 1
     max_epochs: int = 100
     val_interval: int = 2
     amp: bool = True

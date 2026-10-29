@@ -32,20 +32,30 @@ from src.eda import scan_brats_dataset
 def get_brats_data_dicts(
     data_dir: str,
     train_ratio: float = 0.8,
+    val_ratio: float = 0.1,
+    test_ratio: float = 0.1,
     seed: int = 42,
     max_samples: Optional[int] = None
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
     """
-    Scan dataset directory and split patient records into train and validation sets.
+    Scan dataset directory and split patient records into train, validation, and test sets
+    strictly at the patient level (BraTS2021_xxxxx) to avoid any data leakage.
+
+    Default split ratios:
+    - 80% Training: used to update model weights (~1,000 cases)
+    - 10% Validation: used to tune hyperparameters and track best checkpoint (~125 cases)
+    - 10% Test: held-out unseen set for final unbiased benchmark evaluation (~126 cases)
 
     Args:
         data_dir: Root path to BraTS2021_Training_Data.
-        train_ratio: Fraction of cases used for training (default: 0.8).
-        seed: Random seed for reproducibility.
-        max_samples: Optional cap on total samples (useful for rapid debugging/smoke testing).
+        train_ratio: Fraction of patient cases for training (default: 0.8).
+        val_ratio: Fraction of patient cases for validation (default: 0.1).
+        test_ratio: Fraction of patient cases for held-out test (default: 0.1).
+        seed: Random seed for reproducible patient-level shuffling.
+        max_samples: Optional cap on total samples (for debugging/smoke testing).
 
     Returns:
-        (train_files, val_files): Lists of dictionaries with 'image' and 'label' paths.
+        (train_files, val_files, test_files): Lists of dictionaries with file paths.
     """
     records = scan_brats_dataset(data_dir)
     if len(records) == 0:
@@ -56,20 +66,29 @@ def get_brats_data_dicts(
         selected_indices = np.random.choice(len(records), max_samples, replace=False)
         records = [records[i] for i in selected_indices]
 
-    if len(records) <= 1:
-        return records, records
+    total_count = len(records)
+    if total_count <= 2:
+        return records, records, records
 
     rng = np.random.RandomState(seed)
-    shuffled_indices = rng.permutation(len(records))
-    split_idx = max(1, int(len(records) * train_ratio))
+    shuffled_indices = rng.permutation(total_count)
 
-    train_indices = shuffled_indices[:split_idx]
-    val_indices = shuffled_indices[split_idx:]
+    n_train = max(1, int(total_count * train_ratio))
+    n_val = max(1, int(total_count * val_ratio))
+    if n_train + n_val >= total_count:
+        n_train = total_count - 2
+        n_val = 1
+    n_test = total_count - n_train - n_val
+
+    train_indices = shuffled_indices[:n_train]
+    val_indices = shuffled_indices[n_train:n_train + n_val]
+    test_indices = shuffled_indices[n_train + n_val:]
 
     train_files = [records[i] for i in train_indices]
-    val_files = [records[i] for i in val_indices] if len(val_indices) > 0 else train_files
+    val_files = [records[i] for i in val_indices]
+    test_files = [records[i] for i in test_indices] if len(test_indices) > 0 else val_files
 
-    return train_files, val_files
+    return train_files, val_files, test_files
 
 
 def get_train_transforms(
@@ -133,22 +152,35 @@ def get_val_transforms() -> Compose:
 def build_dataloaders(
     data_dir: str,
     train_ratio: float = 0.8,
+    val_ratio: float = 0.1,
+    test_ratio: float = 0.1,
     batch_size: int = 2,
     val_batch_size: int = 1,
+    test_batch_size: int = 1,
     num_workers: int = 2,
     roi_size: Tuple[int, int, int] = (96, 96, 96),
     cache_rate: float = 0.0,
     seed: int = 42,
     max_samples: Optional[int] = None
-) -> Tuple[DataLoader, DataLoader, List[Dict[str, Any]], List[Dict[str, Any]]]:
+) -> Tuple[
+    DataLoader,
+    DataLoader,
+    DataLoader,
+    List[Dict[str, Any]],
+    List[Dict[str, Any]],
+    List[Dict[str, Any]]
+]:
     """
-    Build training and validation DataLoaders.
+    Build training, validation, and held-out test DataLoaders (80/10/10 split).
 
     Args:
         data_dir: Path to BraTS2021_Training_Data directory.
-        train_ratio: Split ratio for training.
+        train_ratio: Split ratio for training (default: 0.8).
+        val_ratio: Split ratio for validation (default: 0.1).
+        test_ratio: Split ratio for testing (default: 0.1).
         batch_size: Batch size for training loader.
         val_batch_size: Batch size for validation loader.
+        test_batch_size: Batch size for test loader.
         num_workers: Number of DataLoader subprocesses.
         roi_size: 3D patch dimensions for training crops.
         cache_rate: Fraction of dataset to cache in RAM (0.0 to 1.0).
@@ -156,17 +188,19 @@ def build_dataloaders(
         max_samples: Optional limit on patient cases.
 
     Returns:
-        (train_loader, val_loader, train_files, val_files)
+        (train_loader, val_loader, test_loader, train_files, val_files, test_files)
     """
-    train_files, val_files = get_brats_data_dicts(
+    train_files, val_files, test_files = get_brats_data_dicts(
         data_dir=data_dir,
         train_ratio=train_ratio,
+        val_ratio=val_ratio,
+        test_ratio=test_ratio,
         seed=seed,
         max_samples=max_samples
     )
 
     train_transforms = get_train_transforms(roi_size=roi_size)
-    val_transforms = get_val_transforms()
+    eval_transforms = get_val_transforms()
 
     if cache_rate > 0.0:
         train_ds = CacheDataset(
@@ -177,13 +211,22 @@ def build_dataloaders(
         )
         val_ds = CacheDataset(
             data=val_files,
-            transform=val_transforms,
+            transform=eval_transforms,
+            cache_rate=cache_rate,
+            num_workers=num_workers
+        )
+        test_ds = CacheDataset(
+            data=test_files,
+            transform=eval_transforms,
             cache_rate=cache_rate,
             num_workers=num_workers
         )
     else:
         train_ds = Dataset(data=train_files, transform=train_transforms)
-        val_ds = Dataset(data=val_files, transform=val_transforms)
+        val_ds = Dataset(data=val_files, transform=eval_transforms)
+        test_ds = Dataset(data=test_files, transform=eval_transforms)
+
+    pin_memory = torch.cuda.is_available()
 
     train_loader = DataLoader(
         train_ds,
@@ -191,7 +234,7 @@ def build_dataloaders(
         shuffle=True,
         num_workers=num_workers,
         collate_fn=list_data_collate,
-        pin_memory=torch.cuda.is_available()
+        pin_memory=pin_memory
     )
 
     val_loader = DataLoader(
@@ -200,7 +243,16 @@ def build_dataloaders(
         shuffle=False,
         num_workers=num_workers,
         collate_fn=list_data_collate,
-        pin_memory=torch.cuda.is_available()
+        pin_memory=pin_memory
     )
 
-    return train_loader, val_loader, train_files, val_files
+    test_loader = DataLoader(
+        test_ds,
+        batch_size=test_batch_size,
+        shuffle=False,
+        num_workers=num_workers,
+        collate_fn=list_data_collate,
+        pin_memory=pin_memory
+    )
+
+    return train_loader, val_loader, test_loader, train_files, val_files, test_files

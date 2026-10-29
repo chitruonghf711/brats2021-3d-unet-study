@@ -33,6 +33,12 @@ Following the standard MICCAI BraTS competition evaluation, raw labels are conve
 
 Each channel is predicted independently using Sigmoid activation.
 
+### Patient-Level Dataset Splitting (80% / 10% / 10%)
+To prevent data leakage across slices, all 1,251 BraTS 2021 cases are split strictly at the **patient level** (`BraTS2021_xxxxx`):
+- **80% Training Set (~1,000 cases)**: Used to compute gradients and update network parameters.
+- **10% Validation Set (~125 cases)**: Evaluated during training to tune hyperparameters and save the best checkpoint (`best_metric_model.pth`).
+- **10% Held-Out Test Set (~126 cases)**: Kept completely separate during training and hyperparameter tuning, evaluated only once for the final unbiased performance benchmark.
+
 ### Baseline Comparison
 
 | Feature | Standard 3D UNet Baseline | nnU-Net Baseline (`DynUNet`) |
