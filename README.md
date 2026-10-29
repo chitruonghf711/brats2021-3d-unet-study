@@ -93,13 +93,14 @@ Segmentation/
 ### Prerequisites
 - Python 3.10, 3.11, or 3.12 (64-bit)
 - Git
-- NVIDIA GPU with CUDA drivers (optional, will fall back to CPU automatically)
+- NVIDIA GPU with CUDA drivers (optional, falls back to CPU automatically)
 
-### Step 1: Open PowerShell or Command Prompt
-Navigate to the project root directory:
+### Step 1: Clone or Navigate to the Repository
 ```powershell
-cd D:\HCMUT\Project\Segmentation
+git clone https://github.com/<your-username>/<repo-name>.git
+cd <repo-name>
 ```
+*(Or navigate into your local repository root folder)*
 
 ### Step 2: Set Up Virtual Environment
 ```powershell
@@ -117,7 +118,14 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-### Step 4: Run Smoke Tests
+### Step 4: Dataset Configuration (Optional)
+The pipeline automatically locates `dataset/BraTS2021_Training_Data` relative to the repository.
+If your dataset is stored in an external location, set the environment variable:
+```powershell
+$env:BRATS_DATA_DIR = "path\to\BraTS2021_Training_Data"
+```
+
+### Step 5: Run Smoke Tests
 Execute the smoke test suites to verify that all modules, transformations, model forward passes, loss functions, and sliding window inference run with zero errors:
 ```powershell
 # 1. Run standard UNet smoke tests (9 tests)
@@ -128,9 +136,8 @@ python tests/test_smoke_nnunet.py
 ```
 Both test suites will execute and display passing status in under 10 seconds.
 
-### Step 5: Launch Baseline Notebooks
+### Step 6: Launch Baseline Notebooks
 ```powershell
-python -m pip install jupyterlab
 jupyter lab
 ```
 Open either `train_baseline.ipynb` (UNet) or `train_nnunet_baseline.ipynb` (nnU-Net).
@@ -144,11 +151,12 @@ Open either `train_baseline.ipynb` (UNet) or `train_nnunet_baseline.ipynb` (nnU-
 - Python 3.10, 3.11, or 3.12 (installed via Homebrew or official installer)
 - Apple Silicon (M1/M2/M3/M4) models automatically utilize **Metal Performance Shaders (`mps`)** GPU acceleration.
 
-### Step 1: Open Terminal
-Navigate to the project root directory:
+### Step 1: Clone or Navigate to the Repository
 ```bash
-cd /path/to/Segmentation
+git clone https://github.com/<your-username>/<repo-name>.git
+cd <repo-name>
 ```
+*(Or navigate into your local repository root folder)*
 
 ### Step 2: Set Up Virtual Environment
 ```bash
@@ -172,7 +180,13 @@ python -c "import torch; print('Device:', 'mps' if hasattr(torch.backends, 'mps'
 ```
 If running on an Apple Silicon Mac, this will print `Device: mps`. On Intel Macs, it will fall back to `cpu`.
 
-### Step 5: Run Smoke Tests
+### Step 5: Dataset Configuration (Optional)
+If your dataset is located outside the repository workspace, export the environment variable:
+```bash
+export BRATS_DATA_DIR="path/to/BraTS2021_Training_Data"
+```
+
+### Step 6: Run Smoke Tests
 ```bash
 # Run standard UNet smoke tests
 python tests/test_smoke.py
@@ -181,9 +195,8 @@ python tests/test_smoke.py
 python tests/test_smoke_nnunet.py
 ```
 
-### Step 6: Launch Baseline Notebooks
+### Step 7: Launch Baseline Notebooks
 ```bash
-python -m pip install jupyterlab
 jupyter lab
 ```
 Open `train_baseline.ipynb` or `train_nnunet_baseline.ipynb`.
@@ -195,15 +208,16 @@ Open `train_baseline.ipynb` or `train_nnunet_baseline.ipynb`.
 Both notebooks are equipped with automatic environment detection and zero hardcoded paths:
 
 1. **Upload the Project to Google Drive**:
-   Upload the `Segmentation` folder (or clone via GitHub) into your Google Drive.
+   Upload the repository folder (or clone via GitHub) into your Google Drive.
 2. **Open the Notebook in Colab**:
    Open either `train_baseline.ipynb` or `train_nnunet_baseline.ipynb`.
 3. **Select GPU Hardware Accelerator**:
    Navigate to `Runtime` -> `Change runtime type` -> Select `T4 GPU`, `V100`, or `A100`.
 4. **Run Cells Sequentially**:
    - **Section 1 (Colab Branch)**: Automatically installs `monai`, `nibabel` and mounts Google Drive.
-   - **Section 2 (Dynamic Project Root)**: Automatically detects the repository root and adds `src` to `sys.path`.
-   - **Section 3 (Dynamic Dataset Discovery)**: Dynamically scans Google Drive and Colab paths for `BraTS2021_Training_Data`. If your dataset is stored in a custom path, you can set `CUSTOM_DATASET_PATH = "/path/to/data"` without modifying module files.
-   - **Section 4 to 6**: Runs Exploratory Data Analysis, sets up DataLoaders with random 3D crops `(96, 96, 96)`, instantiates the architecture, and performs a 1-batch sanity check.
-   - **Section 7 to 8**: Executes `trainer.fit(...)`. Checkpoints are automatically saved to `checkpoints/best_metric_model.pth` (or `checkpoints/nnunet/best_metric_model.pth`) based on highest Mean Dice score.
-   - **Section 9 to 10**: Plots training loss and validation Dice curves across epochs, and produces qualitative visual comparisons between Ground Truth and model predictions.
+   - **Section 2 (Dynamic Project Root)**: Automatically discovers the repository root across Google Drive or Colab storage and adds `src` to `sys.path`.
+   - **Section 3 (Dynamic Dataset Discovery)**: Dynamically scans Google Drive and Colab storage for the BraTS dataset without hardcoding paths. You can also specify `CUSTOM_DATASET_PATH` if needed.
+   - **Section 4 to 6**: Runs Exploratory Data Analysis, sets up DataLoaders with patient-level 80/10/10 split, instantiates the architecture, and performs a 1-batch sanity check.
+   - **Section 7 to 8**: Executes `trainer.fit(...)`. Checkpoints are automatically saved based on highest validation Mean Dice score.
+   - **Section 9 to 10**: Plots training loss and validation Dice curves across epochs, and produces qualitative visual comparisons on validation cases.
+   - **Section 11**: Evaluates the best trained model on the held-out 10% test set (~126 cases) and reports final unbiased benchmark Dice metrics.
