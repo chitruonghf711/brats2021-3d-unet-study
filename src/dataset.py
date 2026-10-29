@@ -27,6 +27,7 @@ from monai.transforms import (
 )
 
 from src.eda import scan_brats_dataset
+from src.noise_soft_labels import AddSyntheticLabelNoised, ConvertHardToSoftLabeld
 
 
 def get_brats_data_dicts(
@@ -93,7 +94,15 @@ def get_brats_data_dicts(
 
 def get_train_transforms(
     roi_size: Tuple[int, int, int] = (96, 96, 96),
-    crop_foreground: bool = True
+    crop_foreground: bool = True,
+    noise_type: str = "none",
+    noise_ratio: float = 0.0,
+    noise_radius: int = 2,
+    soft_label_method: str = "none",
+    soft_alpha: float = 0.1,
+    soft_sigma: float = 1.5,
+    seed: int = 42,
+    keep_clean_label: bool = False,
 ) -> Compose:
     """
     Build MONAI transformation pipeline for training:
@@ -103,10 +112,14 @@ def get_train_transforms(
         Channel 1: WT (Whole Tumor: 1 + 2 + 4)
         Channel 2: ET (Enhancing Tumor: 4)
     - Foreground cropping (remove irrelevant background margins).
-    - Random spatial cropping to target roi_size.
-    - Data augmentation: random axis flips.
+    - Optional deterministic per-patient synthetic 3D label noise injection.
+    - Random spatial cropping to target roi_size and 3D axis flip augmentation.
+    - Optional conversion of binary annotations into continuous soft labels in [0, 1].
     - Channel-wise nonzero intensity normalization.
     """
+    clean_key = "clean_label" if keep_clean_label else None
+    spatial_keys = ["image", "label", "clean_label"] if keep_clean_label else ["image", "label"]
+
     transforms = [
         LoadImaged(keys=["image", "label"]),
         EnsureChannelFirstd(keys="image"),
@@ -117,36 +130,64 @@ def get_train_transforms(
     if crop_foreground:
         transforms.append(CropForegroundd(keys=["image", "label"], source_key="image"))
 
+    if noise_type.lower() != "none" or keep_clean_label:
+        transforms.append(
+            AddSyntheticLabelNoised(
+                keys="label",
+                image_key="image",
+                noise_type=noise_type,
+                noise_ratio=noise_ratio,
+                noise_radius=noise_radius,
+                seed=seed,
+                deterministic_per_patient=True,
+                keep_clean_key=clean_key,
+            )
+        )
+
     transforms.extend([
         RandSpatialCropd(
-            keys=["image", "label"],
+            keys=spatial_keys,
             roi_size=roi_size,
             random_size=False
         ),
-        RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
-        RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=1),
-        RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=2),
-        NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
+        RandFlipd(keys=spatial_keys, prob=0.5, spatial_axis=0),
+        RandFlipd(keys=spatial_keys, prob=0.5, spatial_axis=1),
+        RandFlipd(keys=spatial_keys, prob=0.5, spatial_axis=2),
     ])
+
+    if soft_label_method.lower() != "none":
+        transforms.append(
+            ConvertHardToSoftLabeld(
+                keys="label",
+                method=soft_label_method,
+                alpha=soft_alpha,
+                sigma=soft_sigma,
+            )
+        )
+
+    transforms.append(NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True))
 
     return Compose(transforms)
 
 
-def get_val_transforms() -> Compose:
+def get_val_transforms(crop_foreground: bool = False) -> Compose:
     """
     Build MONAI transformation pipeline for validation and evaluation:
-    - Load 4 modalities and segmentation volume.
+    - Load 4 modalities and clean ground-truth segmentation volume.
     - Convert BraTS labels into 3 overlapping target channels: TC, WT, ET.
+    - Optional foreground brain crop (removes zero-valued skull-stripped margins).
     - Channel-wise nonzero intensity normalization.
-    (Full volumes are preserved for sliding window inference).
     """
-    return Compose([
+    transforms = [
         LoadImaged(keys=["image", "label"]),
         EnsureChannelFirstd(keys="image"),
         ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
         EnsureTyped(keys=["image", "label"], dtype=[torch.float32, torch.float32]),
-        NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
-    ])
+    ]
+    if crop_foreground:
+        transforms.append(CropForegroundd(keys=["image", "label"], source_key="image"))
+    transforms.append(NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True))
+    return Compose(transforms)
 
 
 def build_dataloaders(
@@ -161,7 +202,14 @@ def build_dataloaders(
     roi_size: Tuple[int, int, int] = (96, 96, 96),
     cache_rate: float = 0.0,
     seed: int = 42,
-    max_samples: Optional[int] = None
+    max_samples: Optional[int] = None,
+    noise_type: str = "none",
+    noise_ratio: float = 0.0,
+    noise_radius: int = 2,
+    soft_label_method: str = "none",
+    soft_alpha: float = 0.1,
+    soft_sigma: float = 1.5,
+    crop_eval_foreground: bool = False,
 ) -> Tuple[
     DataLoader,
     DataLoader,
@@ -172,23 +220,9 @@ def build_dataloaders(
 ]:
     """
     Build training, validation, and held-out test DataLoaders (80/10/10 split).
-
-    Args:
-        data_dir: Path to BraTS2021_Training_Data directory.
-        train_ratio: Split ratio for training (default: 0.8).
-        val_ratio: Split ratio for validation (default: 0.1).
-        test_ratio: Split ratio for testing (default: 0.1).
-        batch_size: Batch size for training loader.
-        val_batch_size: Batch size for validation loader.
-        test_batch_size: Batch size for test loader.
-        num_workers: Number of DataLoader subprocesses.
-        roi_size: 3D patch dimensions for training crops.
-        cache_rate: Fraction of dataset to cache in RAM (0.0 to 1.0).
-        seed: Random seed.
-        max_samples: Optional limit on patient cases.
-
-    Returns:
-        (train_loader, val_loader, test_loader, train_files, val_files, test_files)
+    Training DataLoader optionally applies controllable synthetic label noise and/or
+    continuous soft-label conversion; Validation and Test DataLoaders always evaluate
+    against clean ground-truth annotations.
     """
     train_files, val_files, test_files = get_brats_data_dicts(
         data_dir=data_dir,
@@ -199,8 +233,17 @@ def build_dataloaders(
         max_samples=max_samples
     )
 
-    train_transforms = get_train_transforms(roi_size=roi_size)
-    eval_transforms = get_val_transforms()
+    train_transforms = get_train_transforms(
+        roi_size=roi_size,
+        noise_type=noise_type,
+        noise_ratio=noise_ratio,
+        noise_radius=noise_radius,
+        soft_label_method=soft_label_method,
+        soft_alpha=soft_alpha,
+        soft_sigma=soft_sigma,
+        seed=seed,
+    )
+    eval_transforms = get_val_transforms(crop_foreground=crop_eval_foreground)
 
     if cache_rate > 0.0:
         train_ds = CacheDataset(

@@ -205,3 +205,150 @@ def plot_training_curves(
 
     return fig
 
+
+def visualize_noise_and_soft_labels(
+    flair_3d: np.ndarray,
+    clean_wt_3d: np.ndarray,
+    noisy_wt_3d: np.ndarray,
+    gaussian_soft_wt_3d: np.ndarray,
+    sdf_soft_wt_3d: np.ndarray,
+    slice_idx: Optional[int] = None,
+    save_path: Optional[str] = None,
+) -> plt.Figure:
+    """
+    Visualize Clean Ground Truth vs. Corrupted Label Noise vs. Continuous Soft Labels
+    (Gaussian Boundary & Signed Distance Function) on a 2D axial slice.
+    """
+    if slice_idx is None:
+        sums = np.sum(clean_wt_3d > 0.5, axis=(0, 1))
+        slice_idx = int(np.argmax(sums)) if np.max(sums) > 0 else clean_wt_3d.shape[-1] // 2
+
+    flair_s = np.rot90(flair_3d[:, :, slice_idx])
+    clean_s = np.rot90(clean_wt_3d[:, :, slice_idx])
+    noisy_s = np.rot90(noisy_wt_3d[:, :, slice_idx])
+    gauss_s = np.rot90(gaussian_soft_wt_3d[:, :, slice_idx])
+    sdf_s = np.rot90(sdf_soft_wt_3d[:, :, slice_idx])
+
+    # Error overlay: RGB showing agreement (green), false positive (red), false negative (cyan)
+    err_rgb = np.zeros((*clean_s.shape, 3), dtype=np.float32)
+    tp = (clean_s > 0.5) & (noisy_s > 0.5)
+    fp = (clean_s <= 0.5) & (noisy_s > 0.5)
+    fn = (clean_s > 0.5) & (noisy_s <= 0.5)
+    err_rgb[tp] = [0.20, 0.75, 0.35]  # Green: true positive
+    err_rgb[fp] = [0.92, 0.22, 0.22]  # Red: over-segmentation / false positive
+    err_rgb[fn] = [0.15, 0.75, 0.95]  # Cyan: under-segmentation / false negative
+
+    fig, axes = plt.subplots(2, 3, figsize=(16, 10))
+    fig.suptitle(
+        f"Label Noise & Soft Label Formulations on BraTS 2021 (Axial Slice {slice_idx})",
+        fontsize=14,
+        fontweight="bold",
+    )
+
+    axes[0, 0].imshow(flair_s, cmap="gray")
+    axes[0, 0].set_title("Input FLAIR MRI", fontsize=11)
+    axes[0, 0].axis("off")
+
+    axes[0, 1].imshow(flair_s, cmap="gray")
+    axes[0, 1].imshow(np.ma.masked_where(clean_s <= 0.05, clean_s), cmap="Blues", alpha=0.75, vmin=0, vmax=1)
+    axes[0, 1].set_title("Clean Hard Ground Truth {0, 1}", fontsize=11)
+    axes[0, 1].axis("off")
+
+    axes[0, 2].imshow(flair_s, cmap="gray")
+    mask_any = tp | fp | fn
+    axes[0, 2].imshow(np.where(mask_any[..., None], err_rgb, 0.0), alpha=0.80)
+    axes[0, 2].set_title("Noisy Label (Green=TP, Red=FP, Cyan=FN)", fontsize=11)
+    axes[0, 2].axis("off")
+
+    im_g = axes[1, 0].imshow(gauss_s, cmap="magma", vmin=0.0, vmax=1.0)
+    axes[1, 0].set_title("Gaussian Boundary Soft Label [0, 1]", fontsize=11)
+    axes[1, 0].axis("off")
+    fig.colorbar(im_g, ax=axes[1, 0], fraction=0.046, pad=0.04)
+
+    im_s = axes[1, 1].imshow(sdf_s, cmap="magma", vmin=0.0, vmax=1.0)
+    axes[1, 1].set_title("Signed Distance (SDF) Soft Label [0, 1]", fontsize=11)
+    axes[1, 1].axis("off")
+    fig.colorbar(im_s, ax=axes[1, 1], fraction=0.046, pad=0.04)
+
+    # 1D cross-section profile across tumor centroid row
+    tumor_rows = np.where(clean_s.sum(axis=1) > 0)[0]
+    row_idx = int(tumor_rows[len(tumor_rows) // 2]) if len(tumor_rows) > 0 else clean_s.shape[0] // 2
+    axes[1, 2].plot(clean_s[row_idx], label="Clean Hard {0,1}", lw=2.0, color="navy")
+    axes[1, 2].plot(noisy_s[row_idx], label="Noisy Hard", lw=1.5, linestyle="--", color="crimson")
+    axes[1, 2].plot(gauss_s[row_idx], label="Gaussian Soft", lw=2.0, color="darkorange")
+    axes[1, 2].plot(sdf_s[row_idx], label="SDF Soft", lw=2.0, color="mediumseagreen")
+    axes[1, 2].set_title(f"1D Probability Profile (Row y={row_idx})", fontsize=11)
+    axes[1, 2].set_xlabel("Column Voxel Index")
+    axes[1, 2].set_ylabel("Target Probability")
+    axes[1, 2].set_ylim([-0.05, 1.05])
+    axes[1, 2].grid(True, linestyle="--", alpha=0.5)
+    axes[1, 2].legend(fontsize=9)
+
+    plt.tight_layout()
+    if save_path:
+        os.makedirs(os.path.dirname(os.path.abspath(save_path)), exist_ok=True)
+        plt.savefig(save_path, dpi=200, bbox_inches="tight")
+        print(f"Noise & Soft-Label figure saved to: {save_path}")
+
+    return fig
+
+
+def visualize_uncertainty_and_predictions(
+    image: np.ndarray,
+    clean_label: np.ndarray,
+    pred_probs: np.ndarray,
+    slice_idx: Optional[int] = None,
+    title_prefix: str = "3D UNet",
+    save_path: Optional[str] = None,
+) -> plt.Figure:
+    """
+    Visualize FLAIR, Clean WT Ground Truth, Predicted Soft Probability, Binary Mask,
+    and Voxel-wise Predictive Entropy (Uncertainty Map).
+    """
+    if slice_idx is None:
+        wt_gt = clean_label[1]
+        sums = np.sum(wt_gt > 0.5, axis=(0, 1))
+        slice_idx = int(np.argmax(sums)) if np.max(sums) > 0 else wt_gt.shape[-1] // 2
+
+    flair_s = np.rot90(image[0, :, :, slice_idx])
+    gt_wt = np.rot90(clean_label[1, :, :, slice_idx])
+    prob_wt = np.rot90(pred_probs[1, :, :, slice_idx])
+    bin_wt = (prob_wt > 0.5).astype(np.float32)
+
+    p_clip = np.clip(prob_wt, 1e-6, 1.0 - 1e-6)
+    # Normalized binary entropy in [0, 1] (dividing by ln(2))
+    entropy_wt = -(p_clip * np.log(p_clip) + (1.0 - p_clip) * np.log(1.0 - p_clip)) / np.log(2.0)
+
+    fig, axes = plt.subplots(1, 5, figsize=(20, 4.5))
+    fig.suptitle(f"{title_prefix} — Prediction & Boundary Uncertainty (Slice {slice_idx})", fontsize=13, fontweight="bold")
+
+    axes[0].imshow(flair_s, cmap="gray")
+    axes[0].set_title("Input FLAIR")
+    axes[0].axis("off")
+
+    axes[1].imshow(gt_wt, cmap="Blues", vmin=0, vmax=1)
+    axes[1].set_title("Clean GT (WT)")
+    axes[1].axis("off")
+
+    im_p = axes[2].imshow(prob_wt, cmap="viridis", vmin=0, vmax=1)
+    axes[2].set_title("Predicted Prob p(WT)")
+    axes[2].axis("off")
+    fig.colorbar(im_p, ax=axes[2], fraction=0.046, pad=0.04)
+
+    axes[3].imshow(bin_wt, cmap="Blues", vmin=0, vmax=1)
+    axes[3].set_title("Binary Pred (p > 0.5)")
+    axes[3].axis("off")
+
+    im_u = axes[4].imshow(entropy_wt, cmap="inferno", vmin=0, vmax=1)
+    axes[4].set_title("Uncertainty (Entropy)")
+    axes[4].axis("off")
+    fig.colorbar(im_u, ax=axes[4], fraction=0.046, pad=0.04)
+
+    plt.tight_layout()
+    if save_path:
+        os.makedirs(os.path.dirname(os.path.abspath(save_path)), exist_ok=True)
+        plt.savefig(save_path, dpi=200, bbox_inches="tight")
+        print(f"Uncertainty visualization saved to: {save_path}")
+
+    return fig
+

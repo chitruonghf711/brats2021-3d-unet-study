@@ -130,6 +130,18 @@ class BaselineConfig:
     amp: bool = True
     loss_type: str = "dice_ce"
 
+    # Label Noise & Soft Label research parameters
+    noise_type: str = "none"              # 'none', 'boundary', 'flip', 'mixed'
+    noise_ratio: float = 0.0              # Corruption rate in [0.0, 1.0]
+    noise_radius: int = 2                 # Morphological radius (voxels) for boundary noise
+    soft_label_method: str = "none"       # 'none', 'label_smoothing', 'gaussian_boundary', 'sdf'
+    soft_alpha: float = 0.1               # Smoothing factor epsilon for 'label_smoothing'
+    soft_sigma: float = 1.5               # Spatial std / temperature (voxels) for 'gaussian_boundary' / 'sdf'
+    sce_alpha: float = 1.0                # Forward BCE weight for Symmetric CE ('sce')
+    sce_beta: float = 0.5                 # Reverse BCE weight for Symmetric CE ('sce')
+    gce_q: float = 0.7                    # Box-Cox exponent q in (0, 1] for Generalized CE ('gce')
+    track_calibration: bool = False       # Compute Brier score & ECE during validation/evaluation
+
     # Sliding window inference parameters
     sw_batch_size: int = 2
     overlap: float = 0.5
@@ -153,4 +165,72 @@ def get_nnunet_config(data_dir: Optional[str] = None, **kwargs) -> BaselineConfi
     if "output_dir" not in kwargs:
         kwargs["output_dir"] = "outputs/nnunet"
     return get_default_config(data_dir=data_dir, **kwargs)
+
+
+def get_softlabel_study_config(
+    preset: str = "clean",
+    data_dir: Optional[str] = None,
+    noise_ratio: float = 0.3,
+    **kwargs,
+) -> BaselineConfig:
+    """
+    Factory returning pre-configured 3D UNet settings for Soft Label & Label Noise experiments:
+      - 'clean': Clean ground-truth labels + standard DiceCE loss (Anchor Benchmark)
+      - 'noisy_baseline': Corrupted labels + standard DiceCE loss (Noise Degradation Check)
+      - 'noisy_soft_sdf': Corrupted labels + SDF Soft Labels + SoftDiceBCE loss
+      - 'noisy_soft_gaussian': Corrupted labels + Gaussian Boundary Soft Labels + SoftDiceBCE loss
+      - 'noisy_sce': Corrupted labels + Symmetric Cross-Entropy (SCE) noise-robust loss
+      - 'noisy_gce': Corrupted labels + Generalized Cross-Entropy (GCE) noise-robust loss
+    """
+    preset_key = preset.lower()
+    presets = {
+        "clean": {
+            "noise_type": "none",
+            "noise_ratio": 0.0,
+            "soft_label_method": "none",
+            "loss_type": "dice_ce",
+        },
+        "noisy_baseline": {
+            "noise_type": "mixed",
+            "noise_ratio": noise_ratio,
+            "soft_label_method": "none",
+            "loss_type": "dice_ce",
+        },
+        "noisy_soft_sdf": {
+            "noise_type": "mixed",
+            "noise_ratio": noise_ratio,
+            "soft_label_method": "sdf",
+            "soft_sigma": 1.5,
+            "loss_type": "soft_dice_bce",
+        },
+        "noisy_soft_gaussian": {
+            "noise_type": "mixed",
+            "noise_ratio": noise_ratio,
+            "soft_label_method": "gaussian_boundary",
+            "soft_sigma": 1.5,
+            "loss_type": "soft_dice_bce",
+        },
+        "noisy_sce": {
+            "noise_type": "mixed",
+            "noise_ratio": noise_ratio,
+            "soft_label_method": "label_smoothing",
+            "soft_alpha": 0.1,
+            "loss_type": "sce",
+        },
+        "noisy_gce": {
+            "noise_type": "mixed",
+            "noise_ratio": noise_ratio,
+            "soft_label_method": "none",
+            "loss_type": "gce",
+        },
+    }
+    if preset_key not in presets:
+        raise ValueError(f"Unknown study preset '{preset}'. Choose from {list(presets.keys())}.")
+
+    merged = dict(presets[preset_key])
+    merged["track_calibration"] = True
+    merged.setdefault("checkpoint_dir", f"checkpoints/softlabel_study/{preset_key}")
+    merged.setdefault("output_dir", "outputs/softlabel_study")
+    merged.update(kwargs)
+    return get_default_config(data_dir=data_dir, **merged)
 

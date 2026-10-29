@@ -221,3 +221,37 @@ Both notebooks are equipped with automatic environment detection and zero hardco
    - **Section 7 to 8**: Executes `trainer.fit(...)`. Checkpoints are automatically saved based on highest validation Mean Dice score.
    - **Section 9 to 10**: Plots training loss and validation Dice curves across epochs, and produces qualitative visual comparisons on validation cases.
    - **Section 11**: Evaluates the best trained model on the held-out 10% test set (~126 cases) and reports final unbiased benchmark Dice metrics.
+
+---
+
+## 6. Soft Label & Label Noise Research Pipeline (3D UNet)
+
+This repository includes a dedicated research suite for studying **inter-observer boundary uncertainty**, **synthetic label noise**, **continuous soft labels**, and **noise-robust losses** on 3D Brain Tumor Segmentation.
+- **Full Research Report & Vietnamese Guide**: [`README_SOFTLABEL_NOISE.md`](./README_SOFTLABEL_NOISE.md)
+- **Datasets Specification & Supervision Design**: [`DATASETS.md`](./DATASETS.md)
+- **Experimental Benchmark Analysis Report**: [`EXPERIMENTAL_REPORT.md`](./EXPERIMENTAL_REPORT.md)
+- **Detailed End-to-End Architecture & Code Flow**: [`CODE_FLOW.md`](./CODE_FLOW.md)
+
+### Key Modules & Scripts
+- `scripts/prepare_brats_mini.py`: Streams exact $N$ real BraTS 2021 patient volumes (default 20–30 cases, ~190–285 MB) directly over HTTP without downloading the full 13 GB archive, with an offline synthetic 3D NIfTI generator fallback (`--mode synthetic`).
+- `src/noise_soft_labels.py`:
+  - **Controllable Static Per-Patient 3D Label Noise (`AddSyntheticLabelNoised`)**: `'boundary'` (smooth 3D morphological dilation/erosion), `'flip'` (false-positive 3D ellipsoids & false-negative dropouts), and `'mixed'`. Preserves BraTS anatomical hierarchy ($\text{ET} \subseteq \text{TC} \subseteq \text{WT}$).
+  - **Continuous Soft Label Generation (`ConvertHardToSoftLabeld`)**: `'label_smoothing'`, `'gaussian_boundary'` (separable 3D Gaussian blur), and `'sdf'` (Euclidean Signed Distance Function $\sigma(\text{SDF}/\tau)$).
+- `src/loss_metric.py`:
+  - **Soft-Label & Noise-Robust Losses**: `'soft_dice'`, `'soft_dice_bce'`, `'sce'` (Symmetric Cross-Entropy), and `'gce'` (Generalized Cross-Entropy).
+  - **Calibration & Uncertainty Metrics**: Expected Calibration Error (`ece`), Brier Score (`brier_score`), and 3D Predictive Entropy maps.
+- `scripts/run_noise_softlabel_study.py`: Automated 4-arm comparative benchmark runner (`clean`, `noisy_baseline`, `noisy_soft_sdf`, `noisy_sce`) evaluated on unseen clean test ground truth.
+- `train_softlabel_noise_study.ipynb`: Interactive notebook for exploring noise severity, soft-label profiles, and boundary uncertainty calibration.
+- `tests/test_noise_softlabel.py`: Unit & integration test suite verifying noise monotonicity, per-patient determinism, soft-label ranges, robust losses, and calibration metrics.
+
+### Quick Start
+```bash
+# 1. Stream 30 real BraTS 2021 patient cases (~285 MB)
+python scripts/prepare_brats_mini.py --num-cases 30 --mode stream
+
+# 2. Run all unit & smoke tests (22 tests)
+pytest tests/ -v
+
+# 3. Run the 4-arm 3D UNet Soft Label & Label Noise comparative study
+python scripts/run_noise_softlabel_study.py --max-samples 20 --epochs 12 --val-interval 3 --roi-size 80 --noise-ratio 0.35
+```

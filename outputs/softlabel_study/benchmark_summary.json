@@ -1,0 +1,414 @@
+{
+  "eda_and_noise_analysis": {
+    "sample_patient_id": "BraTS2021_00000",
+    "total_available_cases": 30,
+    "sample_label_distribution": {
+      "total_voxels": 8928000,
+      "background_voxels": 8870695,
+      "ncr_voxels": 11738,
+      "ed_voxels": 12836,
+      "et_voxels": 32731,
+      "wt_voxels": 57305,
+      "tc_voxels": 44469,
+      "wt_ratio": 0.006418570788530466,
+      "tc_ratio": 0.004980846774193548,
+      "et_ratio": 0.003666106630824373
+    },
+    "empirical_noise_severity_curve": {
+      "eta_0.10": {
+        "label_dice_tc": 0.9487,
+        "label_dice_wt": 0.9413,
+        "label_dice_et": 0.8862,
+        "label_dice_mean": 0.9254,
+        "voxel_disagreement_rate": 0.00189
+      },
+      "eta_0.20": {
+        "label_dice_tc": 0.9034,
+        "label_dice_wt": 0.8943,
+        "label_dice_et": 0.7863,
+        "label_dice_mean": 0.8613,
+        "voxel_disagreement_rate": 0.00357
+      },
+      "eta_0.35": {
+        "label_dice_tc": 0.757,
+        "label_dice_wt": 0.7602,
+        "label_dice_et": 0.5545,
+        "label_dice_mean": 0.6906,
+        "voxel_disagreement_rate": 0.00888
+      },
+      "eta_0.50": {
+        "label_dice_tc": 0.6596,
+        "label_dice_wt": 0.6784,
+        "label_dice_et": 0.3898,
+        "label_dice_mean": 0.576,
+        "voxel_disagreement_rate": 0.01265
+      }
+    }
+  },
+  "experiments": {
+    "clean": {
+      "preset": "clean",
+      "display_name": "1. Clean GT + DiceCE (Anchor)",
+      "model_summary": {
+        "model_class": "UNet",
+        "total_parameters": 4812512,
+        "trainable_parameters": 4812512,
+        "model_size_mb": 18.36
+      },
+      "split_counts": {
+        "train": 16,
+        "val": 2,
+        "test": 2
+      },
+      "hyperparameters": {
+        "epochs": 12,
+        "roi_size": [
+          80,
+          80,
+          80
+        ],
+        "lr": 0.001,
+        "noise_type": "none",
+        "noise_ratio": 0.0,
+        "soft_label_method": "none",
+        "loss_type": "dice_ce",
+        "device": "mps"
+      },
+      "best_val_dice_mean": 0.1146,
+      "best_val_epoch": 12,
+      "test_scores": {
+        "dice_tc": 0.006,
+        "dice_wt": 0.0836,
+        "dice_et": 0.0028,
+        "dice_mean": 0.0308,
+        "brier_score": 0.24631,
+        "ece": 0.17844
+      },
+      "training_time_sec": 130.12,
+      "history": {
+        "train_loss": [
+          1.058455005288124,
+          1.0339408218860626,
+          1.0318038761615753,
+          1.0420620292425156,
+          1.0306179225444794,
+          1.0188982412219048,
+          1.005093775689602,
+          1.0442181453108788,
+          1.028729185461998,
+          1.018488772213459,
+          1.0142587646842003,
+          0.9975676462054253
+        ],
+        "val_epochs": [
+          4,
+          8,
+          12
+        ],
+        "val_dice_tc": [
+          0.0211,
+          0.0371,
+          0.0597
+        ],
+        "val_dice_wt": [
+          0.1099,
+          0.1454,
+          0.2771
+        ],
+        "val_dice_et": [
+          0.004,
+          0.008,
+          0.0071
+        ],
+        "val_dice_mean": [
+          0.045,
+          0.0635,
+          0.1146
+        ],
+        "val_brier": [
+          0.26462,
+          0.2482,
+          0.21904
+        ],
+        "val_ece": [
+          0.16407,
+          0.09078,
+          0.17316
+        ]
+      }
+    },
+    "noisy_baseline": {
+      "preset": "noisy_baseline",
+      "display_name": "2. Noisy Hard + DiceCE",
+      "model_summary": {
+        "model_class": "UNet",
+        "total_parameters": 4812512,
+        "trainable_parameters": 4812512,
+        "model_size_mb": 18.36
+      },
+      "split_counts": {
+        "train": 16,
+        "val": 2,
+        "test": 2
+      },
+      "hyperparameters": {
+        "epochs": 12,
+        "roi_size": [
+          80,
+          80,
+          80
+        ],
+        "lr": 0.001,
+        "noise_type": "mixed",
+        "noise_ratio": 0.35,
+        "soft_label_method": "none",
+        "loss_type": "dice_ce",
+        "device": "mps"
+      },
+      "best_val_dice_mean": 0.0982,
+      "best_val_epoch": 12,
+      "test_scores": {
+        "dice_tc": 0.0049,
+        "dice_wt": 0.0704,
+        "dice_et": 0.0069,
+        "dice_mean": 0.0274,
+        "brier_score": 0.24494,
+        "ece": 0.10248
+      },
+      "training_time_sec": 166.42,
+      "history": {
+        "train_loss": [
+          1.0818697810173035,
+          1.0453767478466034,
+          1.0430741608142853,
+          1.053049772977829,
+          1.0473976731300354,
+          1.036654770374298,
+          1.0504246726632118,
+          1.0532684177160263,
+          1.035082034766674,
+          1.0347840934991837,
+          1.0348806902766228,
+          1.0363401919603348
+        ],
+        "val_epochs": [
+          4,
+          8,
+          12
+        ],
+        "val_dice_tc": [
+          0.0253,
+          0.0417,
+          0.0437
+        ],
+        "val_dice_wt": [
+          0.1164,
+          0.1944,
+          0.2303
+        ],
+        "val_dice_et": [
+          0.0031,
+          0.0073,
+          0.0206
+        ],
+        "val_dice_mean": [
+          0.0483,
+          0.0811,
+          0.0982
+        ],
+        "val_brier": [
+          0.26028,
+          0.22868,
+          0.21695
+        ],
+        "val_ece": [
+          0.10551,
+          0.10456,
+          0.09271
+        ]
+      }
+    },
+    "noisy_soft_sdf": {
+      "preset": "noisy_soft_sdf",
+      "display_name": "3. Noisy + SDF Soft + SoftDiceBCE",
+      "model_summary": {
+        "model_class": "UNet",
+        "total_parameters": 4812512,
+        "trainable_parameters": 4812512,
+        "model_size_mb": 18.36
+      },
+      "split_counts": {
+        "train": 16,
+        "val": 2,
+        "test": 2
+      },
+      "hyperparameters": {
+        "epochs": 12,
+        "roi_size": [
+          80,
+          80,
+          80
+        ],
+        "lr": 0.001,
+        "noise_type": "mixed",
+        "noise_ratio": 0.35,
+        "soft_label_method": "sdf",
+        "loss_type": "soft_dice_bce",
+        "device": "mps"
+      },
+      "best_val_dice_mean": 0.3299,
+      "best_val_epoch": 12,
+      "test_scores": {
+        "dice_tc": 0.0333,
+        "dice_wt": 0.3963,
+        "dice_et": 0.0599,
+        "dice_mean": 0.1631,
+        "brier_score": 0.0936,
+        "ece": 0.22564
+      },
+      "training_time_sec": 158.19,
+      "history": {
+        "train_loss": [
+          0.7996826022863388,
+          0.7574987784028053,
+          0.7448239475488663,
+          0.7281117662787437,
+          0.6928609609603882,
+          0.6214340850710869,
+          0.5958119742572308,
+          0.5984491035342216,
+          0.5888092368841171,
+          0.5684637352824211,
+          0.5611923672258854,
+          0.533408559858799
+        ],
+        "val_epochs": [
+          4,
+          8,
+          12
+        ],
+        "val_dice_tc": [
+          0.059,
+          0.1354,
+          0.1489
+        ],
+        "val_dice_wt": [
+          0.4775,
+          0.61,
+          0.7085
+        ],
+        "val_dice_et": [
+          0.0665,
+          0.1096,
+          0.1324
+        ],
+        "val_dice_mean": [
+          0.201,
+          0.285,
+          0.3299
+        ],
+        "val_brier": [
+          0.21064,
+          0.12536,
+          0.10084
+        ],
+        "val_ece": [
+          0.34101,
+          0.24792,
+          0.22419
+        ]
+      }
+    },
+    "noisy_sce": {
+      "preset": "noisy_sce",
+      "display_name": "4. Noisy + Smoothing + SCE Robust",
+      "model_summary": {
+        "model_class": "UNet",
+        "total_parameters": 4812512,
+        "trainable_parameters": 4812512,
+        "model_size_mb": 18.36
+      },
+      "split_counts": {
+        "train": 16,
+        "val": 2,
+        "test": 2
+      },
+      "hyperparameters": {
+        "epochs": 12,
+        "roi_size": [
+          80,
+          80,
+          80
+        ],
+        "lr": 0.001,
+        "noise_type": "mixed",
+        "noise_ratio": 0.35,
+        "soft_label_method": "label_smoothing",
+        "loss_type": "sce",
+        "device": "mps"
+      },
+      "best_val_dice_mean": 0.3481,
+      "best_val_epoch": 8,
+      "test_scores": {
+        "dice_tc": 0.0302,
+        "dice_wt": 0.4308,
+        "dice_et": 0.0754,
+        "dice_mean": 0.1788,
+        "brier_score": 0.10728,
+        "ece": 0.25939
+      },
+      "training_time_sec": 111.98,
+      "history": {
+        "train_loss": [
+          1.099761188030243,
+          1.0631957426667213,
+          1.0367207378149033,
+          0.9757722467184067,
+          0.9103039503097534,
+          0.896424762904644,
+          0.8105512708425522,
+          0.7754723876714706,
+          0.8073914647102356,
+          0.7564374431967735,
+          0.7372759357094765,
+          0.8035124912858009
+        ],
+        "val_epochs": [
+          4,
+          8,
+          12
+        ],
+        "val_dice_tc": [
+          0.0326,
+          0.1584,
+          0.14
+        ],
+        "val_dice_wt": [
+          0.5319,
+          0.7351,
+          0.6441
+        ],
+        "val_dice_et": [
+          0.0676,
+          0.1508,
+          0.1193
+        ],
+        "val_dice_mean": [
+          0.2107,
+          0.3481,
+          0.3011
+        ],
+        "val_brier": [
+          0.20696,
+          0.11048,
+          0.10452
+        ],
+        "val_ece": [
+          0.30148,
+          0.25107,
+          0.23409
+        ]
+      }
+    }
+  }
+}

@@ -42,7 +42,11 @@ class BraTSTrainer:
         self.loss_fn = loss_fn
         self.config = config
         self.lr_scheduler = lr_scheduler
-        self.metric = metric if metric is not None else BraTSMetric()
+        self.metric = (
+            metric
+            if metric is not None
+            else BraTSMetric(track_calibration=getattr(config, "track_calibration", False))
+        )
 
         self.device = torch.device(config.device)
         self.model.to(self.device)
@@ -63,6 +67,8 @@ class BraTSTrainer:
             "val_dice_wt": [],
             "val_dice_et": [],
             "val_dice_mean": [],
+            "val_brier": [],
+            "val_ece": [],
         }
 
     def train_epoch(self, dataloader: DataLoader, epoch: int) -> float:
@@ -195,13 +201,21 @@ class BraTSTrainer:
                 self.history["val_dice_wt"].append(val_scores["dice_wt"])
                 self.history["val_dice_et"].append(val_scores["dice_et"])
                 self.history["val_dice_mean"].append(mean_dice)
+                if "brier_score" in val_scores:
+                    self.history["val_brier"].append(val_scores["brier_score"])
+                if "ece" in val_scores:
+                    self.history["val_ece"].append(val_scores["ece"])
+
+                cal_str = ""
+                if "ece" in val_scores:
+                    cal_str = f" | ECE: {val_scores['ece']:.4f} | Brier: {val_scores['brier_score']:.4f}"
 
                 print(
                     f"Validation (Epoch {epoch:03d}) - "
                     f"Mean Dice: {mean_dice:.4f} | "
                     f"TC: {val_scores['dice_tc']:.4f} | "
                     f"WT: {val_scores['dice_wt']:.4f} | "
-                    f"ET: {val_scores['dice_et']:.4f}"
+                    f"ET: {val_scores['dice_et']:.4f}{cal_str}"
                 )
 
                 # Save best checkpoint
