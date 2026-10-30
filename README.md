@@ -1,8 +1,24 @@
 # BraTS 2021 3D Brain Tumor Segmentation Baselines: UNet & nnU-Net
 
 This repository contains two complete, production-ready baseline pipelines for 3D multi-modal brain tumor segmentation on the **BraTS 2021** (Brain Tumor Segmentation Challenge 2021) dataset using **MONAI** and **PyTorch**:
-1. **Standard 3D UNet Baseline** (`monai.networks.nets.UNet`)
+1. **Standard 3D UNet Baseline** (`monai.networks.nets.UNet`) — *Validated on 350 cases (65 epochs Pure FP32, Held-Out Test Mean Dice = 0.8474 / Median = 0.8886, HD95 = 11.53 mm)*
 2. **nnU-Net Baseline** (`monai.networks.nets.DynUNet` - the official MONAI implementation of nnU-Net)
+
+---
+
+## 📚 Core Documentation Index (Tài Liệu Hướng Dẫn & Báo Cáo Baseline)
+
+Dưới đây là các tài liệu kỹ thuật và báo cáo chi tiết được chuẩn hóa cho toàn bộ luồng huấn luyện Baseline:
+
+| Tài liệu | Mục đích & Nội dung chính |
+|---|---|
+| 📊 [**`BASELINE_REPORT.md`**](BASELINE_REPORT.md) | **Báo cáo thực nghiệm chính thức 65 epochs**: Phân tích chi tiết kết quả huấn luyện 350 ca BraTS 2021 trên Kaggle GPU T4 x2, bảng chỉ số Held-Out Test (Dice, HD95, IoU, Sens, Prec), đồ thị học tập và phân tích ca ngoại lai. |
+| 📐 [**`METRICS_GUIDE.md`**](METRICS_GUIDE.md) | **Cẩm nang đặc tả & công thức toán học các metrics**: Định nghĩa 3 vùng u lồng nhau (WT, TC, ET), công thức toán học Dice, HD95 (mm), IoU, Sensitivity, Precision, quy ước xử lý ca rỗng (Empty-mask edge cases), và mức phạt $373.13\text{ mm}$. |
+| 🛠️ [**`CODE_CHANGELOG.md`**](CODE_CHANGELOG.md) | **Báo cáo giải trình luồng code**: Chi tiết toàn bộ các file thêm mới và nâng cấp so với repository gốc ban đầu (`nam21-12-06/test.git` tại `main`), khắc phục lỗi tràn số `NaN` ở FP16, tối ưu Multi-GPU DataParallel và bảo vệ quota Kaggle. |
+| 📖 [**`BASELINE_UNET.md`**](BASELINE_UNET.md) | **Đặc tả kiến trúc & hướng dẫn vận hành Baseline**: Hướng dẫn chạy script CLI `scripts/run_unet_baseline.py` và quy ước Metric Setup RSNA-ASNR-MICCAI. |
+| 📓 [**`kaggle_unet_baseline_full.ipynb`**](kaggle_unet_baseline_full.ipynb) | **Notebook 1-click trên Kaggle**: Cấu hình sẵn cho 2x GPU Tesla T4 (`NvidiaTeslaT4`), tự động giải nén dữ liệu vào `/kaggle/tmp` (0 MB quota `/kaggle/working`), chạy thuần FP32. |
+
+---
 
 Both baselines follow a modular software design with clean Python modules (`src/`), comprehensive smoke test suites (`tests/`), and dual-environment branching notebooks with zero hardcoded paths.
 

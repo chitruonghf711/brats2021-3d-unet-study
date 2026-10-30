@@ -100,10 +100,12 @@ checkpoints/*
 *.h5
 *.ckpt
 
-# Output results & generated figures (preserve folder structure via .gitkeep)
+# Output results & generated figures (preserve folder structure via .gitkeep & study report figures)
 outputs/*
 !outputs/.gitkeep
 !outputs/*/.gitkeep
+!outputs/unet_baseline/
+!outputs/unet_baseline/*
 wandb/
 runs/
 

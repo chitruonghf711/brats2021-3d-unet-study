@@ -13,16 +13,26 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
 
+def _resolve_modality_file(patient_dir: str, patient_id: str, suffix: str) -> Optional[str]:
+    """Locate either compressed (.nii.gz) or uncompressed (.nii, common on Kaggle) NIfTI file."""
+    for ext in (".nii.gz", ".nii"):
+        candidate = os.path.join(patient_dir, f"{patient_id}_{suffix}{ext}")
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
+
 def scan_brats_dataset(data_dir: str) -> List[Dict[str, str]]:
     """
     Scan the BraTS dataset directory and verify the presence of all required modalities.
+    Supports both `.nii.gz` and `.nii` files (auto-unzipped on Kaggle datasets).
 
     Expected modalities per patient:
-    - FLAIR: *_flair.nii.gz
-    - T1: *_t1.nii.gz
-    - T1ce: *_t1ce.nii.gz
-    - T2: *_t2.nii.gz
-    - Segmentation: *_seg.nii.gz
+    - FLAIR: *_flair.nii.gz or *_flair.nii
+    - T1: *_t1.nii.gz or *_t1.nii
+    - T1ce: *_t1ce.nii.gz or *_t1ce.nii
+    - T2: *_t2.nii.gz or *_t2.nii
+    - Segmentation: *_seg.nii.gz or *_seg.nii
 
     Returns:
         List of dictionaries with patient paths.
@@ -40,23 +50,22 @@ def scan_brats_dataset(data_dir: str) -> List[Dict[str, str]]:
 
     for patient_id in patient_dirs:
         p_path = os.path.join(data_dir, patient_id)
-        flair = os.path.join(p_path, f"{patient_id}_flair.nii.gz")
-        t1 = os.path.join(p_path, f"{patient_id}_t1.nii.gz")
-        t1ce = os.path.join(p_path, f"{patient_id}_t1ce.nii.gz")
-        t2 = os.path.join(p_path, f"{patient_id}_t2.nii.gz")
-        seg = os.path.join(p_path, f"{patient_id}_seg.nii.gz")
+        flair = _resolve_modality_file(p_path, patient_id, "flair")
+        t1 = _resolve_modality_file(p_path, patient_id, "t1")
+        t1ce = _resolve_modality_file(p_path, patient_id, "t1ce")
+        t2 = _resolve_modality_file(p_path, patient_id, "t2")
+        seg = _resolve_modality_file(p_path, patient_id, "seg")
 
-        is_complete = all(os.path.isfile(p) for p in [flair, t1, t1ce, t2, seg])
-        if is_complete:
+        if all(p is not None for p in (flair, t1, t1ce, t2, seg)):
             data_list.append({
                 "patient_id": patient_id,
-                "flair": flair,
-                "t1": t1,
-                "t1ce": t1ce,
-                "t2": t2,
-                "seg": seg,
-                "image": [flair, t1ce, t1, t2],
-                "label": seg,
+                "flair": flair,  # type: ignore[dict-item]
+                "t1": t1,        # type: ignore[dict-item]
+                "t1ce": t1ce,    # type: ignore[dict-item]
+                "t2": t2,        # type: ignore[dict-item]
+                "seg": seg,      # type: ignore[dict-item]
+                "image": [flair, t1ce, t1, t2],  # type: ignore[list-item]
+                "label": seg,    # type: ignore[dict-item]
             })
         else:
             missing_records.append(patient_id)

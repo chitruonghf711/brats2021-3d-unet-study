@@ -29,6 +29,11 @@ def set_seed(seed: int = 42) -> None:
         torch.backends.cudnn.benchmark = False
 
 
+def unwrap_model(model: nn.Module) -> nn.Module:
+    """Return underlying module if wrapped in torch.nn.DataParallel / DistributedDataParallel."""
+    return model.module if hasattr(model, "module") else model
+
+
 def save_checkpoint(
     state: Dict[str, Any],
     checkpoint_dir: str,
@@ -50,13 +55,17 @@ def load_checkpoint(
     device: str = "cpu"
 ) -> Dict[str, Any]:
     """
-    Load model weights and optional optimizer state from checkpoint.
+    Load model weights and optional optimizer state from checkpoint (supports DataParallel).
     """
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(f"Checkpoint not found at: {checkpoint_path}")
 
-    checkpoint = torch.load(checkpoint_path, map_location=device)
-    model.load_state_dict(checkpoint["model_state_dict"])
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    state_dict = checkpoint["model_state_dict"]
+    # Strip 'module.' prefix if ever saved directly from DataParallel
+    if any(k.startswith("module.") for k in state_dict.keys()):
+        state_dict = {k.replace("module.", "", 1): v for k, v in state_dict.items()}
+    unwrap_model(model).load_state_dict(state_dict)
 
     if optimizer is not None and "optimizer_state_dict" in checkpoint:
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
