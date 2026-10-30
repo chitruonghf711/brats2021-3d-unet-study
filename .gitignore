@@ -110,4 +110,5 @@ outputs/*
 !outputs/nnunet/*
 wandb/
 runs/
+.kaggle_kernels/
 
