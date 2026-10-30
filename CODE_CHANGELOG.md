@@ -3,7 +3,7 @@
 **Điểm neo commit ban đầu**: `de56758c8ae88bcb62a14abc0e47163a96121419` (*"docs: remove hardcoded machine paths from reproduction guide"*)  
 **Trạng thái nhánh**: Branch `baselineTrain` (phân nhánh trực tiếp từ `origin/main` tại `de56758`)  
 **Mục tiêu phân nhánh**: Tách biệt hoàn toàn luồng **Huấn luyện Baseline Standard 3D UNet thuần** khỏi luồng nghiên cứu nhãn mềm & nhiễu nhãn (vốn được lưu giữ trên nhánh `Chi`).  
-**Tổng quan khối lượng thay đổi**: **18 files** được thêm mới hoặc nâng cấp (**+1,740 dòng mã nguồn**, bảo toàn 100% tính tương thích ngược với code gốc).
+**Tổng quan khối lượng thay đổi**: **22 files** được thêm mới hoặc nâng cấp (**+2,350 dòng mã nguồn**, bảo toàn 100% tính tương thích ngược với code gốc).
 
 ---
 
@@ -15,19 +15,24 @@
 | 2 | [`METRICS_GUIDE.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/METRICS_GUIDE.md) | **TẠO MỚI** | Đặc tả toán học, công thức và cơ chế đo lường các metric (Dice, HD95, IoU, Sens, Prec) |
 | 3 | [`CODE_CHANGELOG.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/CODE_CHANGELOG.md) | **TẠO MỚI** | Tài liệu này: giải trình toàn diện sự khác biệt so với repository gốc ban đầu |
 | 4 | [`BASELINE_UNET.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/BASELINE_UNET.md) | **TẠO MỚI** | Hướng dẫn chạy baseline Standard 3D UNet, cấu trúc kiến trúc và quy ước vùng rỗng |
-| 5 | [`scripts/run_unet_baseline.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/scripts/run_unet_baseline.py) | **TẠO MỚI** | CLI runner chuyên biệt chạy Standard 3D UNet Baseline trên BraTS 2021 |
-| 6 | [`kaggle_unet_baseline_full.ipynb`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/kaggle_unet_baseline_full.ipynb) | **TẠO MỚI** | Notebook chạy 1-click trên Kaggle GPU T4 x2 (65 epochs, Pure FP32, tự giải nén) |
-| 7 | [`kernel-metadata.json`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/kernel-metadata.json) | **TẠO MỚI** | File cấu hình Kaggle CLI để tự động đẩy notebook lên Kaggle |
-| 8 | [`tests/test_unet_baseline_metrics.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/tests/test_unet_baseline_metrics.py) | **TẠO MỚI** | Bộ kiểm thử tự động (5 tests) cho các ca rỗng, tính HD95 chuẩn, quét dataset |
-| 9 | [`outputs/unet_baseline/`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/outputs/unet_baseline/) | **TẠO MỚI** | Thư mục lưu artifacts thực nghiệm chính thức (`.json` báo cáo, 2 ảnh `.png`) |
-| 10 | [`src/loss_metric.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/src/loss_metric.py) | **NÂNG CẤP LỚN** | Bổ sung SoftDice, BCE, HD95 3D EDT, xử lý rỗng BraTS chuẩn, phòng thủ chống tràn số FP16 |
-| 11 | [`src/trainer.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/src/trainer.py) | **NÂNG CẤP LỚN** | Nâng cấp Sliding Window, bóc `unwrap_model`, `_to_plain_tensor`, `clip_grad_norm_`, resume |
-| 12 | [`src/config.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/src/config.py) | **NÂNG CẤP LỚN** | Tự động phát hiện path, hàm `ensure_kaggle_brats_extracted`, config baseline thuần FP32 |
-| 13 | [`src/dataset.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/src/dataset.py) | **NÂNG CẤP** | Patient-level split 80/10/10, bảo vệ `/dev/shm`, `persistent_workers=True` |
-| 14 | [`src/eda.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/src/eda.py) | **NÂNG CẤP** | Quét linh hoạt cả định dạng `.nii.gz` lẫn `.nii` không nén |
-| 15 | [`src/utils.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/src/utils.py) | **NÂNG CẤP** | Thêm `unwrap_model`, `weights_only=False` cho `load_checkpoint` (PyTorch 2.6+) |
-| 16 | [`README.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/README.md) | **NÂNG CẤP** | Cập nhật mục lục tài liệu hướng dẫn và báo cáo baseline ở đầu file |
-| 17 | [`.gitignore`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/.gitignore) | **NÂNG CẤP** | Theo dõi `outputs/unet_baseline/`, bỏ qua file trọng số `.pth` lớn |
+| 5 | [`BASELINE_NNUNET.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/BASELINE_NNUNET.md) | **TẠO MỚI** | Hướng dẫn chạy baseline nnU-Net (DynUNet) trên toàn bộ 1,251 ca BraTS 2021 |
+| 6 | [`scripts/run_unet_baseline.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/scripts/run_unet_baseline.py) | **TẠO MỚI** | CLI runner chuyên biệt chạy Standard 3D UNet Baseline trên BraTS 2021 |
+| 7 | [`scripts/run_nnunet_baseline.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/scripts/run_nnunet_baseline.py) | **TẠO MỚI** | CLI runner chuyên biệt chạy nnU-Net (DynUNet) Baseline trên toàn bộ BraTS 2021 |
+| 8 | [`kaggle_unet_baseline_full.ipynb`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/kaggle_unet_baseline_full.ipynb) | **TẠO MỚI** | Notebook chạy 1-click 3D UNet trên Kaggle GPU T4 x2 (65 epochs, Pure FP32, tự giải nén) |
+| 9 | [`kaggle_nnunet_baseline_full.ipynb`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/kaggle_nnunet_baseline_full.ipynb) | **TẠO MỚI** | Notebook chạy 1-click nnU-Net trên Kaggle GPU T4 x2 cho toàn bộ 1,251 ca BraTS 2021 |
+| 10 | [`kernel-metadata.json`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/kernel-metadata.json) | **TẠO MỚI** | File cấu hình Kaggle CLI để tự động đẩy notebook 3D UNet lên Kaggle |
+| 11 | [`kernel-metadata-nnunet.json`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/kernel-metadata-nnunet.json) | **TẠO MỚI** | File cấu hình Kaggle CLI để tự động đẩy notebook nnU-Net lên Kaggle |
+| 12 | [`tests/test_unet_baseline_metrics.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/tests/test_unet_baseline_metrics.py) | **TẠO MỚI** | Bộ kiểm thử tự động (5 tests) cho các ca rỗng, tính HD95 chuẩn, quét dataset |
+| 13 | [`outputs/unet_baseline/`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/outputs/unet_baseline/) | **TẠO MỚI** | Thư mục lưu artifacts thực nghiệm chính thức (`.json` báo cáo, 2 ảnh `.png`) |
+| 14 | [`src/loss_metric.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/src/loss_metric.py) | **NÂNG CẤP LỚN** | Bổ sung SoftDice, BCE, HD95 3D EDT, xử lý rỗng BraTS chuẩn, phòng thủ chống tràn số FP16 |
+| 15 | [`src/trainer.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/src/trainer.py) | **NÂNG CẤP LỚN** | Nâng cấp Sliding Window, bóc `unwrap_model`, `_to_plain_tensor`, `clip_grad_norm_`, resume |
+| 16 | [`src/config.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/src/config.py) | **NÂNG CẤP LỚN** | Tự động phát hiện path, hàm `ensure_kaggle_brats_extracted`, config baseline thuần FP32 |
+| 17 | [`src/dataset.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/src/dataset.py) | **NÂNG CẤP** | Patient-level split 80/10/10, bảo vệ `/dev/shm`, `persistent_workers=True` |
+| 18 | [`src/eda.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/src/eda.py) | **NÂNG CẤP** | Quét linh hoạt cả định dạng `.nii.gz` lẫn `.nii` không nén |
+| 19 | [`src/utils.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/src/utils.py) | **NÂNG CẤP** | Thêm `unwrap_model`, `weights_only=False` cho `load_checkpoint` (PyTorch 2.6+) |
+| 20 | [`tests/test_smoke_nnunet.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/tests/test_smoke_nnunet.py) | **NÂNG CẤP** | Bổ sung kiểm thử dry-run CLI cho `scripts/run_nnunet_baseline.py` |
+| 21 | [`README.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/README.md) | **NÂNG CẤP** | Cập nhật mục lục tài liệu hướng dẫn và báo cáo baseline ở đầu file |
+| 22 | [`.gitignore`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/.gitignore) | **NÂNG CẤP** | Theo dõi `outputs/unet_baseline/`, bỏ qua file trọng số `.pth` lớn |
 
 ---
 
