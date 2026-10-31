@@ -1,5 +1,5 @@
 {
-  "id": "lanchitrng/brats-2021-3d-unet-baseline-full",
+  "id": "namnguynthihoi/brats-2021-3d-unet-baseline-full",
   "title": "BraTS 2021 3D UNet Baseline Full",
   "code_file": "kaggle_unet_baseline_full.ipynb",
   "language": "python",

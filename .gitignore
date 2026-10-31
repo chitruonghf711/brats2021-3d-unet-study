@@ -91,6 +91,7 @@ data/
 
 # Model Checkpoints (ignore weight files, preserve folder structure via .gitkeep)
 checkpoints/*
+!checkpoints/*/
 !checkpoints/.gitkeep
 !checkpoints/*/.gitkeep
 *.pth
