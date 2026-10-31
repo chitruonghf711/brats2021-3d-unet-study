@@ -62,11 +62,11 @@ Toàn bộ 1,251 ca có nhãn chuyên gia được phân chia ngẫu nhiên như
   - Script sử dụng `torch.nn.DataParallel` tự động chia đều batch size cho 2 GPU.
   - VRAM sử dụng: ~7.2 GB / GPU với batch size 4 (2 samples / GPU) ở patch size `(96, 96, 96)`.
 - **Ước tính thời gian thực nghiệm**:
-  - Với 1,000 ca training, 1 epoch mất khoảng **6.5 – 7.0 phút** trên 2x T4 GPU.
-  - Chạy **50 epochs**: $50 \times 6.8\text{ phút} \approx 340\text{ phút} \approx \mathbf{5.7\text{ giờ}}$.
-  - Quá trình Validation định kỳ (mỗi 5 epoch) và Held-Out Test (~126 ca): $\approx 40\text{ phút}$.
-  - Tổng thời gian hoàn thành: **~6.5 giờ** (hoàn toàn an toàn trong giới hạn 12 giờ của Kaggle session).
-  - Tích hợp cờ an toàn `--max-hours 11.0` để tự động ngắt và xuất kết quả nếu tiến gần mốc thời gian tối đa.
+  - Với 1,000 ca training, 1 epoch mất khoảng **7.0 – 7.5 phút** trên 2x T4 GPU.
+  - Chạy **65 epochs**: $65 \times 7.3\text{ phút} \approx 475\text{ phút} \approx \mathbf{8.0\text{ giờ}}$.
+  - Quá trình Validation định kỳ và Held-Out Test (~126 ca): $\approx 30\text{ phút}$.
+  - Tổng thời gian hoàn thành: **~8.5 giờ** (hoàn toàn an toàn trong giới hạn 12 giờ của Kaggle session).
+  - Tích hợp cờ an toàn `--max-hours 11.5` để tự động ngắt và xuất kết quả nếu tiến gần mốc thời gian tối đa.
 
 ---
 
@@ -80,12 +80,12 @@ Toàn bộ 1,251 ca có nhãn chuyên gia được phân chia ngẫu nhiên như
    - **Persistence**: `Variables and Files`
 2. Thêm dữ liệu BraTS 2021:
    - Nhấn **`+ Add Input`** $\rightarrow$ Tìm kiếm: **`brats-2021-task1`** (tác giả: `dschettler8845`).
-3. Dán toàn bộ nội dung từ [`kaggle_nnunet_baseline_full.ipynb`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/kaggle_nnunet_baseline_full.ipynb) hoặc tải file notebook này lên Kaggle.
+3. Dán toàn bộ nội dung từ [`kaggle_nnunet_baseline_65epochs.ipynb`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/kaggle_nnunet_baseline_65epochs.ipynb) hoặc tải file notebook này lên Kaggle.
 4. Nhấn **`Run All`** (hoặc **`Save Version` $\rightarrow$ `Run All (Save & Run, Background)`**).
 
 ### Hoặc Đẩy Trực Tiếp Bằng Kaggle CLI:
 ```bash
-kaggle kernels push -p . -k kernel-metadata-nnunet.json
+kaggle kernels push -p . -k kernel-metadata-nnunet-65epochs.json
 ```
 
 ---
@@ -93,11 +93,11 @@ kaggle kernels push -p . -k kernel-metadata-nnunet.json
 ### Cách 2: Chạy Trên Máy Trạm / Server Bằng Dòng Lệnh (CLI)
 
 ```bash
-# Chạy đầy đủ 50 epochs trên toàn bộ tập dữ liệu với 2 GPU (hoặc 1 GPU)
+# Chạy đầy đủ 65 epochs trên toàn bộ tập dữ liệu với 2 GPU (hoặc 1 GPU)
 python scripts/run_nnunet_baseline.py \
     --data-dir dataset/BraTS2021_Training_Data \
-    --epochs 50 \
-    --val-interval 5 \
+    --epochs 65 \
+    --val-interval 13 \
     --roi-size 96 \
     --batch-size 4 \
     --sw-batch-size 4 \

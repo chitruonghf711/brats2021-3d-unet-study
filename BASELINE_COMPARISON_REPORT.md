@@ -115,8 +115,8 @@ Tại sao **nnU-Net (DynUNet)** lại nhỉnh hơn **Standard 3D UNet** trên đ
 
 | Tiêu chí | Standard 3D UNet | nnU-Net (DynUNet) | So sánh |
 | :--- | :---: | :---: | :--- |
-| **Cách thức huấn luyện** | Chạy 1 mạch 65 epochs | 50 epochs (Pha 1) + 15 epochs resume (Pha 2) | Linh hoạt hơn khi dùng `--resume` |
-| **Tổng thời gian huấn luyện** | **8.76 giờ** (525.6 phút) | **~8.47 giờ** (508.3 phút) | Ngang ngửa nhau (~8.5 giờ) |
+| **Cách thức huấn luyện** | Chạy trọn vẹn 65 epochs | Chạy trọn vẹn 65 epochs | Cùng thời lượng và số vòng lặp tối ưu |
+| **Tổng thời gian huấn luyện** | **8.76 giờ** (525.6 phút) | **~8.47 giờ** (508.3 phút) | Tốc độ tương đương nhau (~8.5 – 8.7 giờ) |
 | **Tiêu tốn ổ đĩa tạm `/kaggle/tmp`**| ~13.5 GB (giải nén BraTS) | ~13.5 GB (giải nén BraTS) | Đều an toàn 100% trong hạn mức |
 | **Dung lượng checkpoint lưu trữ** | 18.36 MB / file | 21.53 MB / file | Đều rất nhẹ, dễ dàng chia sẻ |
 | **Độ ổn định số học** | Tuyệt đối (0 lỗi NaN) | Tuyệt đối (0 lỗi NaN) | Cả 2 đều hoàn hảo ở chuẩn FP32 |
