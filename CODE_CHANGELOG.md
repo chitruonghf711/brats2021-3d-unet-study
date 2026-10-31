@@ -11,10 +11,11 @@
 
 | STT | File / Thư mục | Trạng thái | Mục đích & Trách nhiệm chính |
 |:---:|---|:---:|---|
-| 1 | [`BASELINE_REPORT.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/BASELINE_REPORT.md) | **TẠO MỚI** | Báo cáo chi tiết kết quả thực nghiệm 65 epochs (350 ca BraTS 2021) trên Kaggle T4 x2 (3D UNet) |
-| 2 | [`BASELINE_NNUNET_REPORT.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/BASELINE_NNUNET_REPORT.md) | **TẠO MỚI** | Báo cáo chi tiết kết quả thực nghiệm 65 epochs trên **toàn bộ 1,251 ca BraTS 2021** (nnU-Net DynUNet: Test Mean Dice `0.8788`, Median `0.9331`) |
-| 3 | [`METRICS_GUIDE.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/METRICS_GUIDE.md) | **TẠO MỚI** | Đặc tả toán học, công thức và cơ chế đo lường các metric (Dice, HD95, IoU, Sens, Prec) |
-| 4 | [`CODE_CHANGELOG.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/CODE_CHANGELOG.md) | **TẠO MỚI** | Tài liệu này: giải trình toàn diện sự khác biệt so với repository gốc ban đầu |
+| 1 | [`BASELINE_COMPARISON_REPORT.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/BASELINE_COMPARISON_REPORT.md) | **TẠO MỚI** | Báo cáo đối chiếu trực diện 3D UNet vs nnU-Net trên toàn bộ 1,251 ca BraTS 2021 (65 epochs, kiểm định Wilcoxon, phân tầng chất lượng) |
+| 2 | [`BASELINE_REPORT.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/BASELINE_REPORT.md) | **NÂNG CẤP** | Báo cáo chi tiết kết quả thực nghiệm 65 epochs trên **toàn bộ 1,251 ca BraTS 2021** (Standard 3D UNet: Test Mean Dice `0.8767`, Median `0.9324`) |
+| 3 | [`BASELINE_NNUNET_REPORT.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/BASELINE_NNUNET_REPORT.md) | **TẠO MỚI** | Báo cáo chi tiết kết quả thực nghiệm 65 epochs trên **toàn bộ 1,251 ca BraTS 2021** (nnU-Net DynUNet: Test Mean Dice `0.8788`, Median `0.9331`) |
+| 4 | [`METRICS_GUIDE.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/METRICS_GUIDE.md) | **TẠO MỚI** | Đặc tả toán học, công thức và cơ chế đo lường các metric (Dice, HD95, IoU, Sens, Prec) |
+| 5 | [`CODE_CHANGELOG.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/CODE_CHANGELOG.md) | **TẠO MỚI** | Tài liệu này: giải trình toàn diện sự khác biệt so với repository gốc ban đầu |
 | 5 | [`BASELINE_UNET.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/BASELINE_UNET.md) | **TẠO MỚI** | Hướng dẫn chạy baseline Standard 3D UNet, cấu trúc kiến trúc và quy ước vùng rỗng |
 | 6 | [`BASELINE_NNUNET.md`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/BASELINE_NNUNET.md) | **TẠO MỚI** | Hướng dẫn chạy baseline nnU-Net (DynUNet) trên toàn bộ 1,251 ca BraTS 2021 |
 | 7 | [`scripts/run_unet_baseline.py`](file:///Users/truongledanchi/.gemini/antigravity/scratch/test/scripts/run_unet_baseline.py) | **TẠO MỚI** | CLI runner chuyên biệt chạy Standard 3D UNet Baseline trên BraTS 2021 |

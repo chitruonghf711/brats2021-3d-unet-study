@@ -1,8 +1,8 @@
 # BraTS 2021 3D Brain Tumor Segmentation Baselines: UNet & nnU-Net
 
 This repository contains two complete, production-ready baseline pipelines for 3D multi-modal brain tumor segmentation on the **BraTS 2021** (Brain Tumor Segmentation Challenge 2021) dataset using **MONAI** and **PyTorch**:
-1. **Standard 3D UNet Baseline** (`monai.networks.nets.UNet`) — *Validated on 350 cases (65 epochs Pure FP32, Held-Out Test Mean Dice = 0.8474 / Median = 0.8886, HD95 = 11.53 mm)*
-2. **nnU-Net Baseline** (`monai.networks.nets.DynUNet` - the official MONAI implementation of nnU-Net)
+1. **Standard 3D UNet Baseline** (`monai.networks.nets.UNet`) — *Validated on Full 1,251 cases (65 epochs Pure FP32, Held-Out Test Mean Dice = 0.8767 / Median = 0.9324, HD95 = 13.58 mm)*
+2. **nnU-Net Baseline** (`monai.networks.nets.DynUNet` - the official MONAI implementation of nnU-Net) — *Validated on Full 1,251 cases (65 epochs Pure FP32, Held-Out Test Mean Dice = 0.8788 / Median = 0.9331, HD95 = 12.91 mm)*
 
 ---
 
@@ -12,8 +12,9 @@ Dưới đây là các tài liệu kỹ thuật và báo cáo chi tiết đượ
 
 | Tài liệu | Mục đích & Nội dung chính |
 |---|---|
-| 📊 [**`BASELINE_REPORT.md`**](BASELINE_REPORT.md) | **Báo cáo thực nghiệm 3D UNet (65 epochs)**: Phân tích kết quả thực nghiệm 350 ca BraTS 2021 (Held-Out Test Mean Dice = 0.8474 / Median = 0.8886, HD95 = 11.53 mm). |
-| 🏆 [**`BASELINE_NNUNET_REPORT.md`**](BASELINE_NNUNET_REPORT.md) | **Báo cáo thực nghiệm nnU-Net (Toàn bộ 1,251 ca - 50 epochs)**: Kết quả thực nghiệm mô hình vàng nnU-Net trên toàn bộ 1,251 ca BraTS 2021 (**Val Mean Dice = 0.8583**, TC = 0.8597, WT = 0.9076, ET = 0.8077). |
+| ⚖️ [**`BASELINE_COMPARISON_REPORT.md`**](BASELINE_COMPARISON_REPORT.md) | **Báo cáo đối chiếu trực tiếp 3D UNet vs. nnU-Net (Full 1,251 ca, 65 epochs)**: So sánh head-to-head trên cùng 126 ca kiểm thử độc lập, kiểm định Wilcoxon ($p < 0.001$), phân tầng chất lượng lâm sàng và phân tích nguyên nhân kỹ thuật. |
+| 📊 [**`BASELINE_REPORT.md`**](BASELINE_REPORT.md) | **Báo cáo thực nghiệm Standard 3D UNet (Full 1,251 ca, 65 epochs)**: Phân tích kết quả thực nghiệm toàn bộ dữ liệu BraTS 2021 (Held-Out Test Mean Dice = 0.8767 / Median = 0.9324, HD95 = 13.58 mm). |
+| 🏆 [**`BASELINE_NNUNET_REPORT.md`**](BASELINE_NNUNET_REPORT.md) | **Báo cáo thực nghiệm nnU-Net DynUNet (Full 1,251 ca, 65 epochs)**: Kết quả thực nghiệm mô hình vàng nnU-Net trên toàn bộ 1,251 ca BraTS 2021 (**Test Mean Dice = 0.8788**, Median = 0.9331, WT = 0.9205, TC = 0.8839, ET = 0.8321, HD95 = 12.91 mm). |
 | 📐 [**`METRICS_GUIDE.md`**](METRICS_GUIDE.md) | **Cẩm nang đặc tả & công thức toán học các metrics**: Định nghĩa 3 vùng u lồng nhau (WT, TC, ET), công thức toán học Dice, HD95 (mm), IoU, Sensitivity, Precision, quy ước xử lý ca rỗng (Empty-mask edge cases), và mức phạt $373.13\text{ mm}$. |
 | 🛠️ [**`CODE_CHANGELOG.md`**](CODE_CHANGELOG.md) | **Báo cáo giải trình luồng code**: Chi tiết toàn bộ các file thêm mới và nâng cấp so với repository gốc ban đầu (`nam21-12-06/test.git` tại `main`), khắc phục lỗi tràn số `NaN` ở FP16, tối ưu Multi-GPU DataParallel và bảo vệ quota Kaggle. |
 | 📖 [**`BASELINE_UNET.md`**](BASELINE_UNET.md) | **Đặc tả kiến trúc & hướng dẫn Standard 3D UNet**: Hướng dẫn chạy script CLI `scripts/run_unet_baseline.py` và quy ước Metric Setup RSNA-ASNR-MICCAI. |
