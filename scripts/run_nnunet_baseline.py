@@ -479,91 +479,43 @@ def main() -> None:
         best_val_dice = float(best_ckpt.get("best_metric", trainer.best_metric))
         print(f"\nReloaded best checkpoint from {best_ckpt_path} (Epoch {best_epoch}, Val Mean Dice = {best_val_dice:.4f})")
 
-    # 7. Unbiased Evaluation on Held-Out Test Set (10% ~ 125 cases on full dataset)
+    # 7. Unbiased Evaluation on Held-Out Test Set (10% ~ 126 cases on full dataset)
     print("\n" + "=" * 88)
     print(f"HELD-OUT TEST SET EVALUATION: {len(test_files)} CASES (DynUNet Best Checkpoint)")
     print("=" * 88)
 
-    test_metric = BraTSMetric(
-        include_background=True,
-        track_calibration=False,
-        compute_hd95=True,
-        compute_confusion_metrics=True,
-        threshold=config.metric_threshold,
-        spacing=config.voxel_spacing,
-        hd95_empty_penalty=config.hd95_empty_penalty,
-        ignore_empty=False,
-    )
-
-    eval_model = model.module if isinstance(model, torch.nn.DataParallel) else model
-    eval_model.eval()
-
-    patient_records: List[Dict[str, Any]] = []
-    test_qualitative_sample: Optional[Dict[str, Any]] = None
-
-    with torch.no_grad():
-        for idx, batch in enumerate(test_loader):
-            images = batch["image"].to(config.device)
-            labels = batch["label"].to(config.device)
-            pid = test_files[idx]["patient_id"]
-
-            preds = sliding_window_inference(
-                inputs=images,
-                roi_size=config.roi_size,
-                sw_batch_size=config.sw_batch_size,
-                predictor=eval_model,
-                overlap=config.overlap,
-                mode="gaussian",
-            )
-            case_scores = test_metric.compute_case_metrics(preds[0], labels[0], patient_id=pid)
-            patient_records.append(case_scores)
-            test_metric.update(preds, labels)
-
-            # Store the first case with non-empty tumor for qualitative visualization
-            if test_qualitative_sample is None and float(case_scores.get("dice_wt", 0.0)) > 0.3:
-                test_qualitative_sample = {
-                    "image": images[0].detach().cpu().numpy(),
-                    "label": labels[0].detach().cpu().numpy(),
-                    "pred": torch.sigmoid(preds[0]).detach().cpu().numpy(),
-                    "pid": pid,
-                    "case_scores": case_scores,
-                }
-
-    aggregate_test_scores = test_metric.aggregate()
-
-    # Compute distribution statistics (Mean, Std, Median, Min, Max) across patient records
-    dist_stats: Dict[str, Dict[str, float]] = {}
-    metric_keys = [
-        "dice_mean", "dice_wt", "dice_tc", "dice_et",
-        "hd95_mean", "hd95_wt", "hd95_tc", "hd95_et",
-        "iou_mean", "iou_wt", "iou_tc", "iou_et",
-        "sensitivity_mean", "sensitivity_wt", "sensitivity_tc", "sensitivity_et",
-        "precision_mean", "precision_wt", "precision_tc", "precision_et",
-    ]
-    for mk in metric_keys:
-        vals = [float(r[mk]) for r in patient_records if mk in r and not np.isnan(r[mk])]
-        if vals:
-            dist_stats[mk] = {
-                "mean": round(float(np.mean(vals)), 4),
-                "std": round(float(np.std(vals)), 4),
-                "median": round(float(np.median(vals)), 4),
-                "min": round(float(np.min(vals)), 4),
-                "max": round(float(np.max(vals)), 4),
-            }
+    aggregate_test_scores = trainer.evaluate(test_loader, name="Held-Out Test Set (nnU-Net Baseline)")
+    patient_records = metric.get_patient_records()
+    dist_stats = metric.summarize_distribution()
 
     # Print summary tables to stdout
     print_test_report_tables(patient_records, dist_stats, aggregate_test_scores)
 
     # 8. Generate Qualitative Prediction Slices
-    if test_qualitative_sample is not None:
-        pred_fig_path = os.path.join(config.output_dir, "nnunet_test_predictions.png")
-        visualize_predictions(
-            image=test_qualitative_sample["image"],
-            clean_label=test_qualitative_sample["label"],
-            pred_probs=test_qualitative_sample["pred"],
-            title_prefix=f"nnU-Net Baseline — Patient {test_qualitative_sample['pid']} (Dice: {test_qualitative_sample['case_scores']['dice_mean']:.3f})",
-            save_path=pred_fig_path,
+    model.eval()
+    sample_batch = next(iter(test_loader))
+    raw_img, raw_gt = sample_batch["image"], sample_batch["label"]
+    sample_img = (raw_img.as_tensor() if hasattr(raw_img, "as_tensor") else raw_img).to(config.device)
+    sample_gt = (raw_gt.as_tensor() if hasattr(raw_gt, "as_tensor") else raw_gt).to(config.device)
+    with torch.no_grad():
+        sample_logits = sliding_window_inference(
+            inputs=sample_img,
+            roi_size=config.roi_size,
+            sw_batch_size=config.sw_batch_size,
+            predictor=model,
+            overlap=config.overlap,
+            mode="gaussian",
         )
+        sample_pred = (torch.sigmoid(sample_logits) > config.metric_threshold).float()
+
+    pred_fig_path = os.path.join(config.output_dir, "nnunet_test_predictions.png")
+    fig_pred = visualize_predictions(
+        image=sample_img[0].cpu().numpy(),
+        label=sample_gt[0].cpu().numpy(),
+        pred=sample_pred[0].cpu().numpy(),
+        save_path=pred_fig_path,
+    )
+    plt.close(fig_pred)
 
     # 9. Dump Comprehensive JSON Metrics Report
     report_data = {

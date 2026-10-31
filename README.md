@@ -12,7 +12,8 @@ Dưới đây là các tài liệu kỹ thuật và báo cáo chi tiết đượ
 
 | Tài liệu | Mục đích & Nội dung chính |
 |---|---|
-| 📊 [**`BASELINE_REPORT.md`**](BASELINE_REPORT.md) | **Báo cáo thực nghiệm chính thức 65 epochs**: Phân tích chi tiết kết quả huấn luyện 350 ca BraTS 2021 trên Kaggle GPU T4 x2, bảng chỉ số Held-Out Test (Dice, HD95, IoU, Sens, Prec), đồ thị học tập và phân tích ca ngoại lai. |
+| 📊 [**`BASELINE_REPORT.md`**](BASELINE_REPORT.md) | **Báo cáo thực nghiệm 3D UNet (65 epochs)**: Phân tích kết quả thực nghiệm 350 ca BraTS 2021 (Held-Out Test Mean Dice = 0.8474 / Median = 0.8886, HD95 = 11.53 mm). |
+| 🏆 [**`BASELINE_NNUNET_REPORT.md`**](BASELINE_NNUNET_REPORT.md) | **Báo cáo thực nghiệm nnU-Net (Toàn bộ 1,251 ca - 50 epochs)**: Kết quả thực nghiệm mô hình vàng nnU-Net trên toàn bộ 1,251 ca BraTS 2021 (**Val Mean Dice = 0.8583**, TC = 0.8597, WT = 0.9076, ET = 0.8077). |
 | 📐 [**`METRICS_GUIDE.md`**](METRICS_GUIDE.md) | **Cẩm nang đặc tả & công thức toán học các metrics**: Định nghĩa 3 vùng u lồng nhau (WT, TC, ET), công thức toán học Dice, HD95 (mm), IoU, Sensitivity, Precision, quy ước xử lý ca rỗng (Empty-mask edge cases), và mức phạt $373.13\text{ mm}$. |
 | 🛠️ [**`CODE_CHANGELOG.md`**](CODE_CHANGELOG.md) | **Báo cáo giải trình luồng code**: Chi tiết toàn bộ các file thêm mới và nâng cấp so với repository gốc ban đầu (`nam21-12-06/test.git` tại `main`), khắc phục lỗi tràn số `NaN` ở FP16, tối ưu Multi-GPU DataParallel và bảo vệ quota Kaggle. |
 | 📖 [**`BASELINE_UNET.md`**](BASELINE_UNET.md) | **Đặc tả kiến trúc & hướng dẫn Standard 3D UNet**: Hướng dẫn chạy script CLI `scripts/run_unet_baseline.py` và quy ước Metric Setup RSNA-ASNR-MICCAI. |
