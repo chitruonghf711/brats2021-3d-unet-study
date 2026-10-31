@@ -437,14 +437,22 @@ def main() -> None:
     start_epoch = 1
     if args.resume and os.path.isfile(args.resume):
         ckpt = load_checkpoint(args.resume, model, optimizer=optimizer, device=config.device)
-        if scheduler is not None and ckpt.get("scheduler_state_dict"):
-            scheduler.load_state_dict(ckpt["scheduler_state_dict"])
+        resumed_ep = int(ckpt.get("epoch", 0))
+        start_epoch = resumed_ep + 1
         trainer.best_metric = float(ckpt.get("best_metric", -1.0))
-        trainer.best_metric_epoch = int(ckpt.get("best_metric_epoch", ckpt.get("epoch", -1)))
+        trainer.best_metric_epoch = int(ckpt.get("best_metric_epoch", resumed_ep))
         if isinstance(ckpt.get("history"), dict):
             trainer.history.update(ckpt["history"])
-        start_epoch = int(ckpt.get("epoch", 0)) + 1
-        print(f"Resumed from {args.resume} at Epoch {start_epoch} (Best Val Mean Dice: {trainer.best_metric:.4f})")
+        # Configure smooth scheduler decay for remaining epochs
+        remaining_epochs = max(1, config.max_epochs - resumed_ep)
+        resumed_lr = min(config.lr, 2e-4) if resumed_ep >= 40 else config.lr
+        for g in optimizer.param_groups:
+            g["lr"] = resumed_lr
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=remaining_epochs, eta_min=1e-5
+        )
+        trainer.lr_scheduler = scheduler
+        print(f"Resumed from {args.resume} at Epoch {start_epoch}/{config.max_epochs} (Best Val Mean Dice: {trainer.best_metric:.4f})")
 
     # 4. Train & Validate across full dataset
     t0 = time.time()

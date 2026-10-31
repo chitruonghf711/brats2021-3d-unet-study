@@ -13,6 +13,8 @@
     "dschettler8845/brats-2021-task1"
   ],
   "competition_sources": [],
-  "kernel_sources": [],
+  "kernel_sources": [
+    "lanchitrng/brats-2021-nnunet-baseline-full"
+  ],
   "model_sources": []
 }
