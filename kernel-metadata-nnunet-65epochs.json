@@ -1,0 +1,20 @@
+{
+  "id": "lanchitrng/brats-2021-nnunet-baseline-65epochs",
+  "title": "BraTS 2021 nnUNet Baseline 65Epochs",
+  "code_file": "kaggle_nnunet_baseline_65epochs.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "dataset_sources": [
+    "dschettler8845/brats-2021-task1"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [
+    "lanchitrng/brats-2021-nnunet-baseline-full"
+  ],
+  "model_sources": []
+}

@@ -107,6 +107,9 @@ outputs/*
 !outputs/*/.gitkeep
 !outputs/unet_baseline/
 !outputs/unet_baseline/*
+!outputs/nnunet/
+!outputs/nnunet/*
 wandb/
 runs/
+.kaggle_kernels/
 

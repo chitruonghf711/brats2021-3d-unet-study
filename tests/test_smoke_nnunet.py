@@ -229,5 +229,21 @@ def test_nnunet_end_to_end_step():
     assert 0.0 <= scores["dice_mean"] <= 1.0
 
 
+def test_run_nnunet_baseline_cli_dry_run():
+    """Verify that scripts/run_nnunet_baseline.py executes cleanly in dry-run mode."""
+    import subprocess
+    script_path = PROJECT_ROOT / "scripts" / "run_nnunet_baseline.py"
+    res = subprocess.run(
+        [sys.executable, str(script_path), "--dry-run"],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT)
+    )
+    assert res.returncode == 0, f"run_nnunet_baseline.py dry-run failed:\n{res.stderr}"
+    assert "BRATS 2021 nnU-NET (DynUNet) BASELINE" in res.stdout
+    assert "DynUNet" in res.stdout
+    assert "Dry Run" in res.stdout
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([str(Path(__file__).resolve()), "-v"]))

@@ -276,11 +276,34 @@ def get_unet_baseline_config(data_dir: Optional[str] = None, **kwargs) -> Baseli
 
 
 def get_nnunet_config(data_dir: Optional[str] = None, **kwargs) -> BaselineConfig:
-    """Return configuration tailored for the nnU-Net (DynUNet) baseline."""
-    kwargs["model_name"] = "nnunet"
-    if "checkpoint_dir" not in kwargs:
-        kwargs["checkpoint_dir"] = "checkpoints/nnunet"
-    if "output_dir" not in kwargs:
-        kwargs["output_dir"] = "outputs/nnunet"
-    return get_default_config(data_dir=data_dir, **kwargs)
+    """
+    Return clean, dedicated configuration strictly for the nnU-Net (DynUNet) Baseline on BraTS 2021:
+      - Architecture: Dynamic U-Net (DynUNet) with InstanceNorm3d & LeakyReLU(0.01)
+      - Zero synthetic label noise ('none', ratio=0.0) and zero soft-label distortion ('none')
+      - Pure FP32 training by default ('amp': False) for rock-solid numerical stability
+      - Full BraTS 2021 Metric Setup enabled (Dice + HD95 + IoU + Sensitivity + Precision)
+      - Isolated output and checkpoint directories ('checkpoints/nnunet', 'outputs/nnunet')
+    """
+    defaults = {
+        "model_name": "nnunet",
+        "amp": False,
+        "noise_type": "none",
+        "noise_ratio": 0.0,
+        "soft_label_method": "none",
+        "loss_type": "dice_bce",
+        "compute_hd95": True,
+        "compute_confusion_metrics": True,
+        "track_calibration": False,
+        "metric_threshold": 0.5,
+        "voxel_spacing": (1.0, 1.0, 1.0),
+        "hd95_empty_penalty": 373.13,
+        "checkpoint_dir": "checkpoints/nnunet",
+        "output_dir": "outputs/nnunet",
+        "nnunet_norm": "instance",
+        "nnunet_act": "leakyrelu",
+        "nnunet_res_block": False,
+        "nnunet_deep_supervision": False,
+    }
+    defaults.update(kwargs)
+    return get_default_config(data_dir=data_dir, **defaults)
 
