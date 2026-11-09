@@ -208,6 +208,49 @@ def plot_comparative_case_figure(
     print(f"[Saved Figure] {save_path} ({dpi} DPI)")
 
 
+def adapt_unet_state_dict(model: torch.nn.Module, state_dict: dict) -> dict:
+    model_keys = set(model.state_dict().keys())
+    if set(state_dict.keys()) == model_keys:
+        return state_dict
+
+    # Translate MONAI submodule naming differences (e.g. .sub0. vs .submodule.0.)
+    new_sd = {}
+    for k, v in state_dict.items():
+        k_new = k
+        if ".sub0." in k_new:
+            k_new = k_new.replace(".sub0.", ".submodule.0.")
+        if ".sub1." in k_new:
+            k_new = k_new.replace(".sub1.", ".submodule.1.")
+        if ".sub2." in k_new:
+            k_new = k_new.replace(".sub2.", ".submodule.2.")
+        if ".subconv." in k_new:
+            k_new = k_new.replace(".subconv.", ".submodule.conv.")
+        if ".subresidual." in k_new:
+            k_new = k_new.replace(".subresidual.", ".submodule.residual.")
+        new_sd[k_new] = v
+
+    if set(new_sd.keys()) == model_keys:
+        print("[Info] Successfully adapted UNet keys to current MONAI format.")
+        return new_sd
+
+    # Fallback: match by shape and parameter order
+    print("[Warning] UNet keys mismatch; matching by shape and order...")
+    matched_sd = {}
+    m_sd = model.state_dict()
+    sd_items = list(state_dict.values())
+    if len(m_sd) == len(sd_items):
+        for (m_k, m_v), v in zip(m_sd.items(), sd_items):
+            if m_v.shape == v.shape:
+                matched_sd[m_k] = v
+            else:
+                print(f"[Warning] Shape mismatch for {m_k}: {m_v.shape} vs {v.shape}")
+        if len(matched_sd) == len(m_sd):
+            print("[Info] Successfully matched all UNet weights by shape and order.")
+            return matched_sd
+
+    return new_sd
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate ET Error Analysis High-Res Visualizations")
     parser.add_argument("--data-dir", type=str, required=True, help="Directory containing BraTS patient folders")
@@ -228,6 +271,7 @@ def main():
     if "model_state_dict" in unet_state:
         unet_state = unet_state["model_state_dict"]
     unet_state = {k.replace("module.", ""): v for k, v in unet_state.items()}
+    unet_state = adapt_unet_state_dict(unet_model, unet_state)
     unet_model.load_state_dict(unet_state)
     unet_model.eval()
     print(f"Loaded Standard 3D UNet from: {args.unet_ckpt}")
