@@ -110,6 +110,8 @@ outputs/*
 !outputs/unet_baseline/*
 !outputs/nnunet/
 !outputs/nnunet/*
+!outputs/et_errors/
+!outputs/et_errors/*
 wandb/
 runs/
 .kaggle_kernels/
