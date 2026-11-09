@@ -114,3 +114,4 @@ wandb/
 runs/
 .kaggle_kernels/
 
+kaggle_jobs/
