@@ -1,0 +1,21 @@
+{
+  "id": "lanchitrng/brats2021-task1-et-error-viz",
+  "title": "BraTS 2021 Task 1 ET Error Visualizations",
+  "code_file": "kaggle_generate_et_error_cases.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "dataset_sources": [
+    "dschettler8845/brats-2021-task1"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [
+    "lanchitrng/brats-2021-3d-unet-baseline-full",
+    "lanchitrng/brats-2021-nnunet-baseline-65epochs"
+  ],
+  "model_sources": []
+}
