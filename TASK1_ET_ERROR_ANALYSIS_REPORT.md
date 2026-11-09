@@ -145,24 +145,35 @@ Khi khối u có kích thước lớn, sự rò rỉ thuốc cản từ ở vi�
 
 ### Danh sách 6 hình ảnh xuất bản:
 
-- **Hình 1 (`et_error_case_01_gt0_fp_01437.png`):**
+- **Hình 1 (`outputs/et_errors/et_error_case_01_gt0_fp_01437.png`):**
   - **Bệnh nhân:** `BraTS2021_01437` | Lát cắt: `Slice Z=92`
   - **Hiện tượng:** $GT\_ET = 0$. Thể hiện rõ vùng xoang tĩnh mạch màng cứng và mạch máu màng não bị nnU-Net vẽ nhầm thành u dương tính giả (**976 voxels FP**), trong khi UNet giữ sạch hoàn toàn.
-- **Hình 2 (`et_error_case_02_gt0_fp_01511.png`):**
+  ![Case BraTS2021_01437 GT=0 False Positive](outputs/et_errors/et_error_case_01_gt0_fp_01437.png)
+
+- **Hình 2 (`outputs/et_errors/et_error_case_02_gt0_fp_01511.png`):**
   - **Bệnh nhân:** `BraTS2021_01511` | Lát cắt: `Slice Z=78`
   - **Hiện tượng:** $GT\_ET = 0$. Minh chứng rõ rệt khoang hoại tử khổng lồ $97.1\text{ cm}^3$ không có u hoạt tính, nhưng cả hai mô hình bị đánh lừa bởi bờ hoại tử dày và tự động vẽ viền dương tính giả $>5,000\text{ voxels}$.
-- **Hình 3 (`et_error_case_03_small_fn_00380.png`):**
+  ![Case BraTS2021_01511 GT=0 Necrotic Cavity False Positive](outputs/et_errors/et_error_case_02_gt0_fp_01511.png)
+
+- **Hình 3 (`outputs/et_errors/et_error_case_03_small_fn_00380.png`):**
   - **Bệnh nhân:** `BraTS2021_00380` | Lát cắt: `Slice Z=104`
   - **Hiện tượng:** U nhỏ bị bỏ sót nghiêm trọng (False Negative). Cả UNet và nnU-Net bỏ sót $>87\% - 91\%$ thể tích u, bản đồ lỗi phủ kín màu xanh dương (FN).
-- **Hình 4 (`et_error_case_04_small_extreme_01520.png`):**
+  ![Case BraTS2021_00380 Small Tumor False Negative](outputs/et_errors/et_error_case_03_small_fn_00380.png)
+
+- **Hình 4 (`outputs/et_errors/et_error_case_04_small_extreme_01520.png`):**
   - **Bệnh nhân:** `BraTS2021_01520` | Lát cắt: `Slice Z=86`
   - **Hiện tượng:** Vi khối u cực nhỏ $109\text{ voxels}$ ($0.11\text{ cm}^3$). UNet phân đoạn co cụm vừa phải ($Dice = 0.5747$), trong khi nnU-Net dự đoán thừa gấp 5 lần thể tích u thật.
-- **Hình 5 (`et_error_case_05_ncr_invasion_01441.png`):**
+  ![Case BraTS2021_01520 Micro Tumor Over-segmentation](outputs/et_errors/et_error_case_04_small_extreme_01520.png)
+
+- **Hình 5 (`outputs/et_errors/et_error_case_05_ncr_invasion_01441.png`):**
   - **Bệnh nhân:** `BraTS2021_01441` | Lát cắt: `Slice Z=82`
   - **Hiện tượng:** U lớn xâm lấn hoại tử. UNet tràn toàn bộ vào lõi hoại tử NCR ($Dice = 0.4462, HD_{95} = 67.16\text{ mm}$), đối lập với nnU-Net phân định ranh giới vi phẫu sắc nét ($Dice = 0.9056, HD_{95} = 1.41\text{ mm}$).
-- **Hình 6 (`et_error_case_06_ncr_boundary_01562.png`):**
+  ![Case BraTS2021_01441 Large Tumor Necrotic Core Invasion](outputs/et_errors/et_error_case_05_ncr_invasion_01441.png)
+
+- **Hình 6 (`outputs/et_errors/et_error_case_06_ncr_boundary_01562.png`):**
   - **Bệnh nhân:** `BraTS2021_01562` | Lát cắt: `Slice Z=88`
   - **Hiện tượng:** U lớn ranh giới phức tạp. UNet lấn $>7,300\text{ voxels}$ vào bờ trong hoại tử ($HD_{95} = 81.98\text{ mm}$), trong khi nnU-Net bám sát ground truth tuyệt đối ($Dice = 0.9512, HD_{95} = 1.00\text{ mm}$).
+  ![Case BraTS2021_01562 Sharp Boundary vs NCR Overflow](outputs/et_errors/et_error_case_06_ncr_boundary_01562.png)
 
 ---
 
