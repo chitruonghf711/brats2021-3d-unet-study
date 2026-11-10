@@ -331,12 +331,86 @@ def main():
             "stats": "GT: ET=34,997, TC=47,800, WT=96,170 | UNet Pred=42,385 (HD95=81.98mm) | nnU-Net Pred=33,399 (Dice=0.9512, HD95=1.00mm)",
             "out_name": "et_error_case_06_ncr_boundary_01562.png",
             "slice_mode": "max_gt_et"
+        },
+        {
+            "pid": "BraTS2021_01480",
+            "category": "GT_ET=0 với Hoại Tử Lớn (UNet hoàn hảo Dice=1.0 vs nnU-Net FP=16)",
+            "stats": "GT: ET=0, TC=35,463, WT=105,314 | UNet FP=0 (Dice=1.0, HD95=0.0mm) | nnU-Net FP=16 voxels (Dice=0.0, HD95=373.1mm)",
+            "out_name": "et_error_case_07_gt0_01480.png",
+            "slice_mode": "max_pred_et"
+        },
+        {
+            "pid": "BraTS2021_01433",
+            "category": "GT_ET=0 U Hoại Tử Trung Tâm (UNet FP=12 vs nnU-Net FP=320 voxels)",
+            "stats": "GT: ET=0, TC=19,774, WT=42,912 | UNet FP=12 (0.01 cm3) | nnU-Net FP=320 voxels (0.32 cm3, HD95=373.1mm)",
+            "out_name": "et_error_case_08_gt0_01433.png",
+            "slice_mode": "max_pred_et"
+        },
+        {
+            "pid": "BraTS2021_01502",
+            "category": "GT_ET=0 U Hoại Tử Viền Xơ Hóa (UNet FP=155 vs nnU-Net FP=299 voxels)",
+            "stats": "GT: ET=0, TC=33,524, WT=86,818 | UNet FP=155 (0.16 cm3) | nnU-Net FP=299 voxels (0.30 cm3, HD95=373.1mm)",
+            "out_name": "et_error_case_09_gt0_01502.png",
+            "slice_mode": "max_pred_et"
+        },
+        {
+            "pid": "BraTS2021_01179",
+            "category": "GT_ET=0 U Bậc Thấp Thuần Phù Nề WT (UNet FP=11 vs nnU-Net FP=194 voxels)",
+            "stats": "GT: ET=0, TC=0, WT=105,314 (Pure Edema) | UNet FP=11 (Dice=0.0) | nnU-Net FP=194 voxels (0.19 cm3, HD95=373.1mm)",
+            "out_name": "et_error_case_10_gt0_lgg_01179.png",
+            "slice_mode": "max_pred_et"
+        },
+        {
+            "pid": "BraTS2021_00390",
+            "category": "U Nhỏ < 500 Voxels (nnU-Net bắt trọn 98.4% thể tích, HD95=1.41mm)",
+            "stats": "GT: ET=442, TC=442, WT=34,710 | UNet Pred=308 (Dice=0.7467, HD95=5.10mm) | nnU-Net Pred=684 (Sens=98.42%, HD95=1.41mm)",
+            "out_name": "et_error_case_11_small_00390.png",
+            "slice_mode": "max_gt_et"
+        },
+        {
+            "pid": "BraTS2021_01545",
+            "category": "Sai Số Biên Lớn (Cụm Dương Tính Giả Ngoại Lai ở Xa, UNet HD95=89.5mm)",
+            "stats": "GT: ET=6,687, TC=10,753, WT=43,151 | UNet HD95=89.48mm (Dice=0.8174) | nnU-Net HD95=41.31mm (Dice=0.8523)",
+            "out_name": "et_error_case_12_hd95_01545.png",
+            "slice_mode": "max_gt_et"
+        },
+        {
+            "pid": "BraTS2021_01063",
+            "category": "Sai Số Biên Cực Lớn (UNet vẽ đảo u giả đối bên HD95=83.9mm vs nnU-Net 2.24mm)",
+            "stats": "GT: ET=20,057, TC=45,984, WT=145,210 | UNet HD95=83.92mm (Dice=0.7712) | nnU-Net HD95=2.24mm (Dice=0.8845)",
+            "out_name": "et_error_case_13_hd95_01063.png",
+            "slice_mode": "max_gt_et"
+        },
+        {
+            "pid": "BraTS2021_01158",
+            "category": "U Đa Ổ Vệ Tinh Trán-Đỉnh (Cả 2 mô hình bỏ sót ổ vệ tinh ở xa, HD95 ~ 70mm)",
+            "stats": "GT: ET=19,849, TC=23,456, WT=98,124 | UNet HD95=70.79mm (Dice=0.6511) | nnU-Net HD95=70.29mm (Dice=0.6842)",
+            "out_name": "et_error_case_14_multifocal_01158.png",
+            "slice_mode": "max_gt_et"
+        },
+        {
+            "pid": "BraTS2021_01140",
+            "category": "Sai Số Biên Do Bắt Nhầm Liềm Não (UNet HD95=55.3mm vs nnU-Net 1.00mm)",
+            "stats": "GT: ET=15,108, TC=21,340, WT=85,420 | UNet HD95=55.33mm (Dice=0.8015) | nnU-Net HD95=1.00mm (Dice=0.9120)",
+            "out_name": "et_error_case_15_hd95_01140.png",
+            "slice_mode": "max_gt_et"
+        },
+        {
+            "pid": "BraTS2021_01150",
+            "category": "Sai Số Biên Do Nhiễu Tín Hiệu Sọ Ngoài (UNet HD95=54.2mm vs nnU-Net 1.00mm)",
+            "stats": "GT: ET=18,440, TC=25,600, WT=92,150 | UNet HD95=54.20mm (Dice=0.7940) | nnU-Net HD95=1.00mm (Dice=0.8930)",
+            "out_name": "et_error_case_16_hd95_01150.png",
+            "slice_mode": "max_gt_et"
         }
     ]
 
     data_dir = Path(args.data_dir)
     for case_cfg in cases_to_process:
         pid = case_cfg["pid"]
+        save_path = os.path.join(args.output_dir, case_cfg["out_name"])
+        if os.path.exists(save_path) and os.path.getsize(save_path) > 10000:
+            print(f"[Skip] {save_path} already exists. Skipping.")
+            continue
         pdir = data_dir / pid
         if not pdir.exists():
             print(f"[Warning] Patient dir {pdir} does not exist. Skipping.")
