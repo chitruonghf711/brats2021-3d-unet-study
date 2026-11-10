@@ -143,8 +143,9 @@ Khi khối u có kích thước lớn, sự rò rỉ thuốc cản từ ở vi�
 5. **Panel 5 - nnU-Net (DynUNet) Prediction:** Dự đoán ET của nnU-Net (Màu vàng; viền nét đứt xanh lá là GT).
 6. **Panel 6 - Error Classification Map:** Bản đồ phân loại lỗi không gian của mô hình (Xanh lá = True Positive; Đỏ = False Positive; Xanh dương = False Negative).
 
-### Danh sách 6 hình ảnh xuất bản:
+### Danh sách 16 hình ảnh xuất bản (Đầy đủ 100% các ca bệnh được phân tích):
 
+#### Nhóm 1: 6 Ca không có u ngấm thuốc ($GT\_ET = 0$)
 - **Hình 1 (`outputs/et_errors/et_error_case_01_gt0_fp_01437.png`):**
   - **Bệnh nhân:** `BraTS2021_01437` | Lát cắt: `Slice Z=92`
   - **Hiện tượng:** $GT\_ET = 0$. Thể hiện rõ vùng xoang tĩnh mạch màng cứng và mạch máu màng não bị nnU-Net vẽ nhầm thành u dương tính giả (**976 voxels FP**), trong khi UNet giữ sạch hoàn toàn.
@@ -155,6 +156,27 @@ Khi khối u có kích thước lớn, sự rò rỉ thuốc cản từ ở vi�
   - **Hiện tượng:** $GT\_ET = 0$. Minh chứng rõ rệt khoang hoại tử khổng lồ $97.1\text{ cm}^3$ không có u hoạt tính, nhưng cả hai mô hình bị đánh lừa bởi bờ hoại tử dày và tự động vẽ viền dương tính giả $>5,000\text{ voxels}$.
   ![Case BraTS2021_01511 GT=0 Necrotic Cavity False Positive](outputs/et_errors/et_error_case_02_gt0_fp_01511.png)
 
+- **Hình 7 (`outputs/et_errors/et_error_case_07_gt0_01480.png`):**
+  - **Bệnh nhân:** `BraTS2021_01480` | Lát cắt: `Slice Z=64`
+  - **Hiện tượng:** $GT\_ET = 0$. Khối hoại tử lớn. UNet sạch hoàn toàn ($Dice = 1.0, FP=0$), nnU-Net chỉ có $16\text{ voxels}$ FP ($0.016\text{ cm}^3$).
+  ![Case BraTS2021_01480 GT=0](outputs/et_errors/et_error_case_07_gt0_01480.png)
+
+- **Hình 8 (`outputs/et_errors/et_error_case_08_gt0_01433.png`):**
+  - **Bệnh nhân:** `BraTS2021_01433` | Lát cắt: `Slice Z=85`
+  - **Hiện tượng:** $GT\_ET = 0$. UNet FP $12\text{ voxels}$ ($0.01\text{ cm}^3$), nnU-Net FP $320\text{ voxels}$ ($0.32\text{ cm}^3$) ở bờ hoại tử trung tâm.
+  ![Case BraTS2021_01433 GT=0](outputs/et_errors/et_error_case_08_gt0_01433.png)
+
+- **Hình 9 (`outputs/et_errors/et_error_case_09_gt0_01502.png`):**
+  - **Bệnh nhân:** `BraTS2021_01502` | Lát cắt: `Slice Z=72`
+  - **Hiện tượng:** $GT\_ET = 0$. Viền xơ hóa quanh hoại tử gây FP $155\text{ voxels}$ ở UNet và $299\text{ voxels}$ ở nnU-Net.
+  ![Case BraTS2021_01502 GT=0](outputs/et_errors/et_error_case_09_gt0_01502.png)
+
+- **Hình 10 (`outputs/et_errors/et_error_case_10_gt0_lgg_01179.png`):**
+  - **Bệnh nhân:** `BraTS2021_01179` | Lát cắt: `Slice Z=80`
+  - **Hiện tượng:** $GT\_ET = 0$. U thần kinh đệm bậc thấp (Pure Edema). UNet FP $11\text{ voxels}$, nnU-Net FP $194\text{ voxels}$ rải rác chất trắng.
+  ![Case BraTS2021_01179 GT=0 LGG](outputs/et_errors/et_error_case_10_gt0_lgg_01179.png)
+
+#### Nhóm 2: Các ca u nhỏ ($GT\_ET < 500\text{ voxels}$) & Bỏ sót u (False Negative)
 - **Hình 3 (`outputs/et_errors/et_error_case_03_small_fn_00380.png`):**
   - **Bệnh nhân:** `BraTS2021_00380` | Lát cắt: `Slice Z=104`
   - **Hiện tượng:** U nhỏ bị bỏ sót nghiêm trọng (False Negative). Cả UNet và nnU-Net bỏ sót $>87\% - 91\%$ thể tích u, bản đồ lỗi phủ kín màu xanh dương (FN).
@@ -165,6 +187,12 @@ Khi khối u có kích thước lớn, sự rò rỉ thuốc cản từ ở vi�
   - **Hiện tượng:** Vi khối u cực nhỏ $109\text{ voxels}$ ($0.11\text{ cm}^3$). UNet phân đoạn co cụm vừa phải ($Dice = 0.5747$), trong khi nnU-Net dự đoán thừa gấp 5 lần thể tích u thật.
   ![Case BraTS2021_01520 Micro Tumor Over-segmentation](outputs/et_errors/et_error_case_04_small_extreme_01520.png)
 
+- **Hình 11 (`outputs/et_errors/et_error_case_11_small_00390.png`):**
+  - **Bệnh nhân:** `BraTS2021_00390` | Lát cắt: `Slice Z=96`
+  - **Hiện tượng:** U nhỏ $442\text{ voxels}$ ($0.44\text{ cm}^3$). nnU-Net bắt trọn $98.42\%$ u ($HD_{95}=1.41\text{ mm}$), vượt trội UNet ($HD_{95}=5.10\text{ mm}$).
+  ![Case BraTS2021_00390 Small Tumor](outputs/et_errors/et_error_case_11_small_00390.png)
+
+#### Nhóm 3: Các ca u lớn có sai số biên $HD_{95} > 50\text{ mm}$ & Xâm lấn hoại tử (NCR)
 - **Hình 5 (`outputs/et_errors/et_error_case_05_ncr_invasion_01441.png`):**
   - **Bệnh nhân:** `BraTS2021_01441` | Lát cắt: `Slice Z=82`
   - **Hiện tượng:** U lớn xâm lấn hoại tử. UNet tràn toàn bộ vào lõi hoại tử NCR ($Dice = 0.4462, HD_{95} = 67.16\text{ mm}$), đối lập với nnU-Net phân định ranh giới vi phẫu sắc nét ($Dice = 0.9056, HD_{95} = 1.41\text{ mm}$).
@@ -174,6 +202,31 @@ Khi khối u có kích thước lớn, sự rò rỉ thuốc cản từ ở vi�
   - **Bệnh nhân:** `BraTS2021_01562` | Lát cắt: `Slice Z=88`
   - **Hiện tượng:** U lớn ranh giới phức tạp. UNet lấn $>7,300\text{ voxels}$ vào bờ trong hoại tử ($HD_{95} = 81.98\text{ mm}$), trong khi nnU-Net bám sát ground truth tuyệt đối ($Dice = 0.9512, HD_{95} = 1.00\text{ mm}$).
   ![Case BraTS2021_01562 Sharp Boundary vs NCR Overflow](outputs/et_errors/et_error_case_06_ncr_boundary_01562.png)
+
+- **Hình 12 (`outputs/et_errors/et_error_case_12_hd95_01545.png`):**
+  - **Bệnh nhân:** `BraTS2021_01545` | Lát cắt: `Slice Z=90`
+  - **Hiện tượng:** Cụm dương tính giả ngoại lai nằm xa bờ u khiến UNet $HD_{95} = 89.48\text{ mm}$, nnU-Net $41.31\text{ mm}$.
+  ![Case BraTS2021_01545 Distant Outliers](outputs/et_errors/et_error_case_12_hd95_01545.png)
+
+- **Hình 13 (`outputs/et_errors/et_error_case_13_hd95_01063.png`):**
+  - **Bệnh nhân:** `BraTS2021_01063` | Lát cắt: `Slice Z=76`
+  - **Hiện tượng:** UNet vẽ một đảo dương tính giả ở thùy bán cầu đối bên ($HD_{95} = 83.92\text{ mm}$), nnU-Net dẹp sạch hoàn toàn ($HD_{95} = 2.24\text{ mm}$).
+  ![Case BraTS2021_01063 Contralateral FP Island](outputs/et_errors/et_error_case_13_hd95_01063.png)
+
+- **Hình 14 (`outputs/et_errors/et_error_case_14_multifocal_01158.png`):**
+  - **Bệnh nhân:** `BraTS2021_01158` | Lát cắt: `Slice Z=98`
+  - **Hiện tượng:** U đa ổ vệ tinh (thùy trán và thùy đỉnh cách xa 70 mm). Cả 2 mô hình bỏ sót ổ vệ tinh ($HD_{95} \approx 70.5\text{ mm}$).
+  ![Case BraTS2021_01158 Multifocal Satellites](outputs/et_errors/et_error_case_14_multifocal_01158.png)
+
+- **Hình 15 (`outputs/et_errors/et_error_case_15_hd95_01140.png`):**
+  - **Bệnh nhân:** `BraTS2021_01140` | Lát cắt: `Slice Z=84`
+  - **Hiện tượng:** UNet bắt nhầm liềm não phía trước ($HD_{95} = 55.33\text{ mm}$), nnU-Net khử sạch ($HD_{95} = 1.00\text{ mm}$).
+  ![Case BraTS2021_01140 Falx Cerebri False Positive](outputs/et_errors/et_error_case_15_hd95_01140.png)
+
+- **Hình 16 (`outputs/et_errors/et_error_case_16_hd95_01150.png`):**
+  - **Bệnh nhân:** `BraTS2021_01150` | Lát cắt: `Slice Z=94`
+  - **Hiện tượng:** UNet bị nhiễu tín hiệu bản sọ ngoài ($HD_{95} = 54.20\text{ mm}$), nnU-Net phân định chuẩn xác ($HD_{95} = 1.00\text{ mm}$).
+  ![Case BraTS2021_01150 Skull Noise Artifact](outputs/et_errors/et_error_case_16_hd95_01150.png)
 
 ---
 
