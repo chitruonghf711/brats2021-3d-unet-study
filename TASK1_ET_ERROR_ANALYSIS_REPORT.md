@@ -35,9 +35,11 @@ Trong tập kiểm thử độc lập 126 ca của BraTS 2021, có chính xác *
 ### Phân tích Cơ chế Bệnh học & Nguyên nhân Sai số:
 
 1. **Sai số do Mạch máu màng cứng & Xoang tĩnh mạch (`BraTS2021_01437`):**
-   - **Hiện tượng:** Ở ca bệnh này, Standard 3D UNet đạt kết quả hoàn hảo (0 voxel dự đoán thừa, $\text{Dice} = 1.0$), trong khi nnU-Net dự đoán thừa tới **976 voxels** ($0.976\text{ cm}^3$).
-   - **Bản chất hình ảnh học:** Trên chuỗi xung T1ce (T1 có tiêm thuốc cản từ Gadolinium), các xoang tĩnh mạch màng cứng (Superior Sagittal Sinus, Transverse Sinus) và mạng lưới mạch màng mềm (leptomeningeal vessels) hấp thu thuốc cản từ rất mạnh, thể hiện cường độ tín hiệu siêu cao tương đương với viền u glioblastoma ác tính.
-   - **Tại sao nnU-Net bị đánh lừa?** DynUNet áp dụng chuẩn hóa Instance Normalization trên từng ca bệnh độc lập. Khi khối u không có ET thực sự để tạo phân phối tương phản cục bộ, việc chuẩn hóa z-score đã khuếch đại độ lệch chuẩn của các cấu trúc mạch màng não ngoài rìa vỏ não. Kết hợp với receptive field đa tầng nhạy cảm với viền sáng, nnU-Net đã gán nhầm vùng xoang tĩnh mạch thành ET.
+   - **Hiện tượng trên toàn thể tích:** Ở ca bệnh này trên tập kiểm thử toàn cục, Standard 3D UNet đạt kết quả tối ưu (thể tích đánh giá toàn khối ghi nhận $FP \approx 0\text{ voxel}$, $\text{Dice} = 1.0$), trong khi nnU-Net dự đoán thừa tới **976 voxels** ($0.976\text{ cm}^3$, $\text{Dice} = 0.0$, $HD_{95} = 373.13\text{ mm}$).
+   - **Chi tiết lát cắt trực quan (Slice Z=101):** Trên lát cắt Z=101 (nơi sai số thể hiện rõ nhất), cả hai mô hình đều bị kích hoạt bởi cùng một cấu trúc giải phẫu: **vùng xoang tĩnh mạch / mạch máu màng cứng (meningeal vessels)** ngấm thuốc cản từ rất mạnh trên T1ce. Tuy nhiên:
+     + **Standard 3D UNet (Panel 4 - viền cam):** Chỉ xuất hiện một vệt li ti cục bộ (khoảng 10–15 voxels ở rìa ngoài vỏ não / màng não, diện tích hiển thị 432 pixels) do xác suất sigmoid chớm vượt ngưỡng $p > 0.5$ tại đúng lát cắt này, và triệt tiêu sạch ở hầu hết các lát cắt khác.
+     + **nnU-Net (Panel 5 - viền vàng):** Bị đánh lừa nghiêm trọng trên diện rộng, lan tỏa sâu vào nhu mô não với diện tích hiển thị 2,728 pixels (gấp hơn 6 lần UNet trên lát cắt này) và trải dài liên tục qua nhiều lát cắt (tổng 976 voxels).
+   - **Bản chất hình ảnh học & Tại sao mô hình bị đánh lừa?** Trên chuỗi xung T1ce (T1 có tiêm thuốc cản từ Gadolinium), các xoang tĩnh mạch màng cứng (Superior Sagittal Sinus, Transverse Sinus) và mạng lưới mạch màng mềm (leptomeningeal vessels) hấp thu thuốc cản từ rất mạnh, thể hiện cường độ tín hiệu siêu cao tương đương với viền u glioblastoma ác tính. DynUNet áp dụng chuẩn hóa Instance Normalization trên từng ca bệnh độc lập. Khi khối u không có ET thực sự để tạo phân phối tương phản cục bộ, việc chuẩn hóa z-score đã khuếch đại độ lệch chuẩn của các cấu trúc mạch màng não ngoài rìa vỏ não. Kết hợp với receptive field đa tầng nhạy cảm với viền sáng, nnU-Net đã khuếch đại và gán nhầm vùng xoang tĩnh mạch thành khối u ET.
 
 2. **Dương tính giả nghiêm trọng tại Thành khoang Hoại tử (`BraTS2021_01511`):**
    - **Hiện tượng:** Đây là ca lỗi thể tích lớn nhất trong nhóm $GT=0$. Khối u có khoang hoại tử khổng lồ $GT\_NCR = 97,103\text{ voxels}$ ($97.1\text{ cm}^3$), bao quanh bởi $180,724\text{ voxels}$ phù nề não ($180.7\text{ cm}^3$). Hoàn toàn không có mô u ngấm thuốc ($GT\_ET = 0$).
@@ -147,8 +149,8 @@ Khi khối u có kích thước lớn, sự rò rỉ thuốc cản từ ở vi�
 
 #### Nhóm 1: 6 Ca không có u ngấm thuốc ($GT\_ET = 0$)
 - **Hình 1 (`outputs/et_errors/et_error_case_01_gt0_fp_01437.png`):**
-  - **Bệnh nhân:** `BraTS2021_01437` | Lát cắt: `Slice Z=92`
-  - **Hiện tượng:** $GT\_ET = 0$. Thể hiện rõ vùng xoang tĩnh mạch màng cứng và mạch máu màng não bị nnU-Net vẽ nhầm thành u dương tính giả (**976 voxels FP**), trong khi UNet giữ sạch hoàn toàn.
+  - **Bệnh nhân:** `BraTS2021_01437` | Lát cắt: `Slice Z=101`
+  - **Hiện tượng:** $GT\_ET = 0$. Thể hiện rõ vùng xoang tĩnh mạch màng cứng và mạch máu màng não bị nnU-Net vẽ nhầm thành u dương tính giả lan rộng (**976 voxels FP**, viền vàng lớn), trong khi 3D UNet kiểm soát tốt hơn rất nhiều, chỉ xuất hiện vệt li ti vi mô cục bộ ở bờ sọ (viền cam).
   ![Case BraTS2021_01437 GT=0 False Positive](outputs/et_errors/et_error_case_01_gt0_fp_01437.png)
 
 - **Hình 2 (`outputs/et_errors/et_error_case_02_gt0_fp_01511.png`):**
